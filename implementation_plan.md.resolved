@@ -1,0 +1,304 @@
+# InstitutionalEdge — End-to-End Implementation Plan
+
+## Overview
+
+Transform the current MVP (20 stocks, basic FII/DII accumulation score) into a **full institutional money tracking and stock selection system** — all in JavaScript (MERN stack). The system tracks where big money is moving **before it shows up in price**, scores stocks on multiple weighted factors, generates precise entry/target/SL levels, and tracks selected positions daily.
+
+**Existing stack:**
+- Backend: Node.js + Express + MongoDB Atlas + Redis (Docker)
+- Frontend: Next.js 14 (TypeScript)
+- Collectors: NSE FII/DII (stock-level), NSE Bulk Deals
+- Analyzer: [accumulationAnalyzer.js](file:///c:/Stock-Trading/backend/src/services/accumulationAnalyzer.js) (FII + Bulk score, 2 components)
+
+---
+
+## Phase 1: Data Foundation
+
+> [!IMPORTANT]
+> All data comes from NSE public APIs and broker APIs — no illegal scraping. NSE uses cookie-based sessions; existing [base.js](file:///c:/Stock-Trading/backend/src/collectors/base.js) collector already handles this.
+
+### Backend — New MongoDB Models
+
+#### [MODIFY] [Stock.js](file:///c:/Stock-Trading/backend/src/models/Stock.js)
+Add: `marketCap`, `lotSize`, `sectorIndex` (e.g. `NIFTY_BANK`) fields.
+
+#### [NEW] OiData.js
+```
+date, symbol, futureOi, futureOiChange, futureOiChangePct,
+callOi, putOi, pcr, createdAt
+```
+
+#### [NEW] DailyPrice.js
+```
+date, symbol, open, high, low, close, volume,
+deliveryQty, deliveryPct, sma20, sma50, sma200, atr14, createdAt
+```
+
+#### [NEW] SectorIndex.js
+```
+date, indexName (NIFTY_BANK, NIFTY_IT, etc.), open, high, low, close, volume, createdAt
+```
+
+#### [NEW] SmartMoneyScore.js
+```
+date, symbol,
+scores: { institutionalFlow, bulkDeal, oiSignal, delivery, hiddenAccumulation },
+compositeScore, interpretation, confidence, metadata, createdAt
+```
+
+#### [NEW] DivergenceAlert.js
+```
+date, symbol, alertType, severity, message, actionRecommendation, confidence, metadata, createdAt
+```
+
+---
+
+### Backend — New Collectors
+
+#### [NEW] bhavCopy.js (`src/collectors/bhavCopy.js`)
+Fetches NSE daily bhav copy CSV after market close (3:45 PM).
+Parses OHLCV + delivery data → saves to `DailyPrice` collection.
+
+#### [NEW] oiCollector.js (`src/collectors/oiCollector.js`)
+Fetches futures OI data from NSE `/api/live-analysis-variations`.
+Parses OI + OI change % → saves to `OiData` collection.
+
+#### [NEW] sectorCollector.js (`src/collectors/sectorCollector.js`)
+Fetches Nifty sectoral index values from NSE `/api/allIndices`.
+Saves to `SectorIndex` collection.
+
+#### [MODIFY] [cron.js](file:///c:/Stock-Trading/backend/src/scheduler/cron.js)
+Extend pipeline to: BhavCopy → OI → Sector Index → FII/DII → BulkDeals → Analysis (in sequence, after 4:30 PM IST).
+
+#### [MODIFY] [seed.js](file:///c:/Stock-Trading/backend/src/seed.js)
+Expand to all Nifty 50 stocks with correct `sectorIndex` mappings.
+
+---
+
+## Phase 2: Analysis Engine
+
+### [MODIFY] [accumulationAnalyzer.js](file:///c:/Stock-Trading/backend/src/services/accumulationAnalyzer.js)
+Expand from 2 to **5 components**:
+
+| Component | Weight | Source |
+|---|---|---|
+| Institutional Flow (FII net) | 30% | `FiiDiiData` |
+| Bulk Deal Sentiment | 25% | [BulkDeal](file:///c:/Stock-Trading/backend/src/services/accumulationAnalyzer.js#58-91) |
+| OI Signal (Long/Short buildup) | 20% | `OiData` |
+| Delivery % Score | 15% | `DailyPrice` |
+| Hidden Accumulation (volume↑, price flat) | 10% | `DailyPrice` |
+
+Score: 0–100 (was -100 to +100, normalized to 0–100 for UI clarity).
+
+#### [NEW] relativeStrengthAnalyzer.js (`src/services/relativeStrengthAnalyzer.js`)
+- Calculates RS = (Stock normalized return / Nifty50 normalized return) × 100
+- Calculates RS vs sector index
+- RS trend: STRENGTHENING / WEAKENING
+- RS percentile: where current RS sits in 60-day historical range
+
+#### [NEW] sectorRotationAnalyzer.js (`src/services/sectorRotationAnalyzer.js`)
+- Ranks all Nifty sectors by: avg RS + 10-day RS momentum + FII flow
+- Detects ROTATING_IN / ROTATING_OUT signals
+
+#### [NEW] technicalAnalyzer.js (`src/services/technicalAnalyzer.js`)
+Modular framework — calculates and returns individual scores for:
+- RSI (14-day): sweet spot 40–65 = bullish
+- MACD: crossover + histogram direction
+- Volume Price Analysis (OBV trend vs price trend)
+- Supertrend (10-period, 3× ATR)
+- MA Alignment (price > SMA20 > SMA50 > SMA200)
+
+Each indicator returns -100 to +100. Weighted composite returned.
+
+#### [NEW] stockSelector.js (`src/core/stockSelector.js`)
+**Main scoring engine.** For each stock:
+
+```
+Composite Score =
+  smartMoneyScore × 0.30
+  + rsScore × 0.25
+  + technicalScore × 0.25
+  + fundamentalScore × 0.10
+  + riskScore × 0.10
+```
+
+Also calculates:
+- **Entry range**: current price ±1–2%
+- **Target**: current price + 2.5 × ATR14
+- **Stop Loss**: current price − 1 × ATR14
+- **R:R ratio**: target distance / SL distance
+- **Position size**: 2% portfolio risk / SL% (Kelly simplified)
+
+#### [NEW] divergenceDetector.js (`src/services/divergenceDetector.js`)
+- Compares 30-day accumulation score vs 30-day price change
+- Detects: BULLISH_DIVERGENCE, BEARISH_DIVERGENCE, ACCELERATING_ACCUMULATION
+- Saves alerts to `DivergenceAlert` collection
+
+---
+
+## Phase 3: Smart Money Intelligence
+
+#### [NEW] institutionClassifier.js (`src/services/institutionClassifier.js`)
+Classifies bulk deal buyers by tier:
+- Tier 1: Proprietary desks, known hedge funds
+- Tier 2: Strategic FIIs, domestic MFs
+- Tier 3: Passive ETFs / index rebalancers
+- Tier 4: Retail MFs, unknown HNIs
+
+Calculates institution win-rate from historical deals (updated weekly).
+
+#### [NEW] signalFreshness.js (`src/services/signalFreshness.js`)
+Time-decay weights for signals:
+
+| Signal Type | Full Validity | Decay |
+|---|---|---|
+| Tier-1 bulk buy | 96 hours | Linear |
+| FII flow | 48 hours | Linear |
+| OI buildup | 240 hours | Slow |
+| Technical breakout | 12 hours | Fast |
+
+Applied when combining scores in `stockSelector.js`.
+
+---
+
+## Phase 4: API Layer
+
+### New Endpoints
+
+#### [MODIFY] [scan.js](file:///c:/Stock-Trading/backend/src/routes/scan.js)
+- `GET /api/v1/scan/latest` — returns top 20 scored stocks with full data
+- `GET /api/v1/scan/divergences` — returns active divergence alerts
+
+#### [NEW] footprint.js (`src/routes/footprint.js`)
+- `GET /api/v1/footprint/:symbol?days=90` — returns chart data:
+  - OHLCV (DailyPrice)
+  - FII/DII daily net (FiiDiiData)
+  - OI change % (OiData)
+  - Bulk deal buy/sell markers (BulkDeal)
+  - Delivery % (DailyPrice)
+
+#### [NEW] sectors.js (`src/routes/sectors.js`)
+- `GET /api/v1/sectors/rotation` — returns sector rankings + signals
+
+#### [MODIFY] [portfolio.js](file:///c:/Stock-Trading/backend/src/routes/portfolio.js)
+- `GET /api/v1/portfolio/:id/daily-update` — for each open position returns:
+  - Current price, PnL
+  - Today's FII flow, bulk deals, OI change
+  - HOLD / BOOK PARTIAL / EXIT recommendation
+
+#### [MODIFY] [app.js](file:///c:/Stock-Trading/backend/src/app.js)
+Register new routes.
+
+---
+
+## Phase 5: Frontend
+
+### Pages
+
+#### [MODIFY] Dashboard ([frontend/src/app/page.tsx](file:///c:/Stock-Trading/frontend/src/app/page.tsx))
+- Top 5 scan results with composite score bar, entry/target/SL, RS badge
+- Sector rotation mini-table (top 3 rotating in, bottom 3 rotating out)
+- Active divergence alerts
+
+#### [NEW] Footprint Chart Page (`frontend/src/app/stocks/[symbol]/footprint/page.tsx`)
+5-panel chart using **Recharts**:
+1. Candlestick (price + MA20 + MA50)
+2. FII/DII daily bar + cumulative line
+3. OI change % (colored by price direction)
+4. Bulk deal buy/sell scatter markers
+5. Volume bars + delivery % line
+
+#### [NEW] Sector Rotation Page (`frontend/src/app/sectors/page.tsx`)
+- Table: sector name, RS current, RS momentum, FII flow 10d, signal badge
+- Color coded: green = rotating in, red = rotating out
+
+#### [MODIFY] Portfolio Page ([frontend/src/app/portfolio/page.tsx](file:///c:/Stock-Trading/frontend/src/app/portfolio/page.tsx))
+- Daily update card per position:
+  - PnL, FII flow today, bulk deals today, OI change, HOLD/EXIT tag
+  - Divergence alerts if present
+
+### Components
+
+#### [NEW] FootprintChart.tsx
+Multi-panel Recharts component with synchronized x-axis.
+
+#### [NEW] ScoreCard.tsx
+Displays composite score + 5 component bars (smart money, RS, technical, fundamental, risk).
+
+#### [NEW] DivergenceAlert.tsx
+Alert banner component with severity color coding.
+
+---
+
+## Phase 6: Automation & Alerts
+
+#### [MODIFY] [cron.js](file:///c:/Stock-Trading/backend/src/scheduler/cron.js)
+Full daily pipeline (Mon–Fri at 4:30 PM IST / 11:00 UTC):
+```
+Step 1: Fetch Bhav Copy (OHLCV + delivery) → save DailyPrice
+Step 2: Fetch OI data → save OiData
+Step 3: Fetch Sector indices → save SectorIndex
+Step 4: Fetch FII/DII (stock-level) → save FiiDiiData
+Step 5: Fetch Bulk Deals → save BulkDeal
+Step 6: Run StockSelector (all 50 stocks) → save SmartMoneyScore
+Step 7: Run DivergenceDetector → save DivergenceAlert
+Step 8: Update open portfolio positions with daily tracking data
+```
+
+#### [NEW] alertService.js (`src/services/alertService.js`)
+Checks after each pipeline run:
+- SL breach (position down > stop %)
+- Target hit (position up > target)
+- High-severity divergence detected
+- Sends webhook / email notification
+
+---
+
+## Verification Plan
+
+### Automated — Run after each phase
+
+```powershell
+# Phase 1: Verify data collection
+node --env-file=src/.env src/seed.js
+
+# Trigger manual pipeline
+node --env-file=src/.env -e "require('./src/scheduler/cron.js').runPipeline()"
+
+# Verify data in DB
+node --env-file=src/.env -e "
+  const {connectMongo}=require('./src/config/db');
+  const DailyPrice=require('./src/models/DailyPrice');
+  (async()=>{await connectMongo(); console.log(await DailyPrice.countDocuments()); process.exit(0);})()
+"
+```
+
+```powershell
+# Phase 2-3: Verify analysis engine
+node --env-file=src/.env -e "
+  const {connectMongo}=require('./src/config/db');
+  const selector=require('./src/core/stockSelector');
+  (async()=>{await connectMongo(); const r=await selector.scanUniverse(); console.log(JSON.stringify(r[0], null, 2)); process.exit(0);})()
+"
+```
+
+```powershell
+# Phase 4: Test API endpoints
+Invoke-RestMethod -Uri 'http://localhost:4000/api/v1/scan/latest'
+Invoke-RestMethod -Uri 'http://localhost:4000/api/v1/footprint/RELIANCE?days=30'
+Invoke-RestMethod -Uri 'http://localhost:4000/api/v1/sectors/rotation'
+```
+
+### Manual — Frontend verification
+1. Open `http://localhost:3000` — verify dashboard shows scored stocks with entry/target/SL
+2. Click any stock → verify 5-panel footprint chart renders
+3. Add a position in portfolio → verify daily update shows HOLD/EXIT recommendation
+4. Check sector rotation page for ranking table
+
+---
+
+> [!NOTE]
+> **Phasing strategy:** Each phase is independent and testable before the next. Start with Phase 1 (data collection). Without real data, all scores default to neutral (50) which is expected behavior — not a bug.
+
+> [!IMPORTANT]
+> **NSE data timing:** NSE bulk deals and bhav copy are only available after 3:30 PM IST. Run the pipeline manually during dev using [runPipeline()](file:///c:/Stock-Trading/backend/src/scheduler/cron.js#20-37) directly or wait until EOD.

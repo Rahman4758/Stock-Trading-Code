@@ -1,0 +1,1265 @@
+{
+  "_date": "2026-06-09",
+  "map": {
+    "HINDALCO": {
+      "key": "NSE_FO|62596",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "HINDALCO26JUNFUT",
+      "isFo": true
+    },
+    "RELIANCE": {
+      "key": "NSE_FO|62802",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "RELIANCE26JUNFUT",
+      "isFo": true
+    },
+    "TCS": {
+      "key": "NSE_FO|62851",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "TCS26JUNFUT",
+      "isFo": true
+    },
+    "HDFCBANK": {
+      "key": "NSE_FO|62593",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "HDFCBANK26JUNFUT",
+      "isFo": true
+    },
+    "ICICIBANK": {
+      "key": "NSE_FO|62604",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "ICICIBANK26JUNFUT",
+      "isFo": true
+    },
+    "INFY": {
+      "key": "NSE_FO|62620",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "INFY26JUNFUT",
+      "isFo": true
+    },
+    "BHARTIARTL": {
+      "key": "NSE_FO|62384",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "BHARTIARTL26JUNFUT",
+      "isFo": true
+    },
+    "ITC": {
+      "key": "NSE_FO|62625",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "ITC26JUNFUT",
+      "isFo": true
+    },
+    "SBIN": {
+      "key": "NSE_FO|62812",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "SBIN26JUNFUT",
+      "isFo": true
+    },
+    "MARUTI": {
+      "key": "NSE_FO|62683",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "MARUTI26JUNFUT",
+      "isFo": true
+    },
+    "SUNPHARMA": {
+      "key": "NSE_FO|62838",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "SUNPHARMA26JUNFUT",
+      "isFo": true
+    },
+    "TATASTEEL": {
+      "key": "NSE_FO|62850",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "TATASTEEL26JUNFUT",
+      "isFo": true
+    },
+    "AXISBANK": {
+      "key": "NSE_FO|62373",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "AXISBANK26JUNFUT",
+      "isFo": true
+    },
+    "KOTAKBANK": {
+      "key": "NSE_FO|62659",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "KOTAKBANK26JUNFUT",
+      "isFo": true
+    },
+    "LT": {
+      "key": "NSE_FO|62665",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "LT26JUNFUT",
+      "isFo": true
+    },
+    "BAJFINANCE": {
+      "key": "NSE_FO|62377",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "BAJFINANCE26JUNFUT",
+      "isFo": true
+    },
+    "TITAN": {
+      "key": "NSE_FO|62854",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "TITAN26JUNFUT",
+      "isFo": true
+    },
+    "HINDUNILVR": {
+      "key": "NSE_FO|62598",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "HINDUNILVR26JUNFUT",
+      "isFo": true
+    },
+    "ASIANPAINT": {
+      "key": "NSE_FO|62367",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "ASIANPAINT26JUNFUT",
+      "isFo": true
+    },
+    "ADANIENT": {
+      "key": "NSE_FO|62343",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "ADANIENT26JUNFUT",
+      "isFo": true
+    },
+    "ADANIPORTS": {
+      "key": "NSE_FO|62345",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "ADANIPORTS26JUNFUT",
+      "isFo": true
+    },
+    "HCLTECH": {
+      "key": "NSE_FO|62591",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "HCLTECH26JUNFUT",
+      "isFo": true
+    },
+    "ONGC": {
+      "key": "NSE_FO|62738",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "ONGC26JUNFUT",
+      "isFo": true
+    },
+    "NTPC": {
+      "key": "NSE_FO|62717",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "NTPC26JUNFUT",
+      "isFo": true
+    },
+    "JSWSTEEL": {
+      "key": "NSE_FO|62643",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "JSWSTEEL26JUNFUT",
+      "isFo": true
+    },
+    "POWERGRID": {
+      "key": "NSE_FO|62791",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "POWERGRID26JUNFUT",
+      "isFo": true
+    },
+    "GRASIM": {
+      "key": "NSE_FO|62588",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "GRASIM26JUNFUT",
+      "isFo": true
+    },
+    "ULTRACEMCO": {
+      "key": "NSE_FO|62861",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "ULTRACEMCO26JUNFUT",
+      "isFo": true
+    },
+    "NESTLEIND": {
+      "key": "NSE_FO|62714",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "NESTLEIND26JUNFUT",
+      "isFo": true
+    },
+    "COALINDIA": {
+      "key": "NSE_FO|62408",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "COALINDIA26JUNFUT",
+      "isFo": true
+    },
+    "BAJAJFINSV": {
+      "key": "NSE_FO|62375",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "BAJAJFINSV26JUNFUT",
+      "isFo": true
+    },
+    "APOLLOHOSP": {
+      "key": "NSE_FO|62363",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "APOLLOHOSP26JUNFUT",
+      "isFo": true
+    },
+    "TECHM": {
+      "key": "NSE_FO|62852",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "TECHM26JUNFUT",
+      "isFo": true
+    },
+    "INDUSINDBK": {
+      "key": "NSE_FO|62618",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "INDUSINDBK26JUNFUT",
+      "isFo": true
+    },
+    "BRITANNIA": {
+      "key": "NSE_FO|62394",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "BRITANNIA26JUNFUT",
+      "isFo": true
+    },
+    "EICHERMOT": {
+      "key": "NSE_FO|62566",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "EICHERMOT26JUNFUT",
+      "isFo": true
+    },
+    "DRREDDY": {
+      "key": "NSE_FO|62565",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "DRREDDY26JUNFUT",
+      "isFo": true
+    },
+    "CIPLA": {
+      "key": "NSE_FO|62407",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "CIPLA26JUNFUT",
+      "isFo": true
+    },
+    "DIVISLAB": {
+      "key": "NSE_FO|62561",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "DIVISLAB26JUNFUT",
+      "isFo": true
+    },
+    "BPCL": {
+      "key": "NSE_FO|62393",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "BPCL26JUNFUT",
+      "isFo": true
+    },
+    "HEROMOTOCO": {
+      "key": "NSE_FO|62595",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "HEROMOTOCO26JUNFUT",
+      "isFo": true
+    },
+    "SBILIFE": {
+      "key": "NSE_FO|62811",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "SBILIFE26JUNFUT",
+      "isFo": true
+    },
+    "HDFCLIFE": {
+      "key": "NSE_FO|62594",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "HDFCLIFE26JUNFUT",
+      "isFo": true
+    },
+    "WIPRO": {
+      "key": "NSE_FO|62874",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "WIPRO26JUNFUT",
+      "isFo": true
+    },
+    "BAJAJ-AUTO": {
+      "key": "NSE_FO|62374",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "BAJAJ-AUTO26JUNFUT",
+      "isFo": true
+    },
+    "TATACONSUM": {
+      "key": "NSE_FO|62842",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "TATACONSUM26JUNFUT",
+      "isFo": true
+    },
+    "UPL": {
+      "key": "NSE_FO|62865",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "UPL26JUNFUT",
+      "isFo": true
+    },
+    "DLF": {
+      "key": "NSE_FO|62563",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "DLF26JUNFUT",
+      "isFo": true
+    },
+    "CHOLAFIN": {
+      "key": "NSE_FO|62406",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "CHOLAFIN26JUNFUT",
+      "isFo": true
+    },
+    "VEDL": {
+      "key": "NSE_FO|62867",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "VEDL26JUNFUT",
+      "isFo": true
+    },
+    "PIIND": {
+      "key": "NSE_FO|62772",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "PIIND26JUNFUT",
+      "isFo": true
+    },
+    "TRENT": {
+      "key": "NSE_FO|62859",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "TRENT26JUNFUT",
+      "isFo": true
+    },
+    "TVSMOTOR": {
+      "key": "NSE_FO|62860",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "TVSMOTOR26JUNFUT",
+      "isFo": true
+    },
+    "HAL": {
+      "key": "NSE_FO|62589",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "HAL26JUNFUT",
+      "isFo": true
+    },
+    "BEL": {
+      "key": "NSE_FO|62382",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "BEL26JUNFUT",
+      "isFo": true
+    },
+    "CUMMINSIND": {
+      "key": "NSE_FO|62509",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "CUMMINSIND26JUNFUT",
+      "isFo": true
+    },
+    "ABB": {
+      "key": "NSE_FO|62332",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "ABB26JUNFUT",
+      "isFo": true
+    },
+    "ABCAPITAL": {
+      "key": "NSE_FO|62333",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "ABCAPITAL26JUNFUT",
+      "isFo": true
+    },
+    "ADANIENSOL": {
+      "key": "NSE_FO|62342",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "ADANIENSOL26JUNFUT",
+      "isFo": true
+    },
+    "ALKEM": {
+      "key": "NSE_FO|62349",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "ALKEM26JUNFUT",
+      "isFo": true
+    },
+    "AMBUJACEM": {
+      "key": "NSE_FO|62360",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "AMBUJACEM26JUNFUT",
+      "isFo": true
+    },
+    "ASHOKLEY": {
+      "key": "NSE_FO|62366",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "ASHOKLEY26JUNFUT",
+      "isFo": true
+    },
+    "ASTRAL": {
+      "key": "NSE_FO|62370",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "ASTRAL26JUNFUT",
+      "isFo": true
+    },
+    "AUBANK": {
+      "key": "NSE_FO|62371",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "AUBANK26JUNFUT",
+      "isFo": true
+    },
+    "AUROPHARMA": {
+      "key": "NSE_FO|62372",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "AUROPHARMA26JUNFUT",
+      "isFo": true
+    },
+    "BANDHANBNK": {
+      "key": "NSE_FO|62378",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "BANDHANBNK26JUNFUT",
+      "isFo": true
+    },
+    "BANKBARODA": {
+      "key": "NSE_FO|62379",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "BANKBARODA26JUNFUT",
+      "isFo": true
+    },
+    "BHARATFORG": {
+      "key": "NSE_FO|62383",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "BHARATFORG26JUNFUT",
+      "isFo": true
+    },
+    "BHEL": {
+      "key": "NSE_FO|62385",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "BHEL26JUNFUT",
+      "isFo": true
+    },
+    "BIOCON": {
+      "key": "NSE_FO|62386",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "BIOCON26JUNFUT",
+      "isFo": true
+    },
+    "BOSCHLTD": {
+      "key": "NSE_FO|62392",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "BOSCHLTD26JUNFUT",
+      "isFo": true
+    },
+    "CANBK": {
+      "key": "NSE_FO|62397",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "CANBK26JUNFUT",
+      "isFo": true
+    },
+    "COFORGE": {
+      "key": "NSE_FO|62437",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "COFORGE26JUNFUT",
+      "isFo": true
+    },
+    "COLPAL": {
+      "key": "NSE_FO|62498",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "COLPAL26JUNFUT",
+      "isFo": true
+    },
+    "CONCOR": {
+      "key": "NSE_FO|62499",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "CONCOR26JUNFUT",
+      "isFo": true
+    },
+    "CROMPTON": {
+      "key": "NSE_FO|62508",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "CROMPTON26JUNFUT",
+      "isFo": true
+    },
+    "DABUR": {
+      "key": "NSE_FO|62555",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "DABUR26JUNFUT",
+      "isFo": true
+    },
+    "DALBHARAT": {
+      "key": "NSE_FO|62556",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "DALBHARAT26JUNFUT",
+      "isFo": true
+    },
+    "DIXON": {
+      "key": "NSE_FO|62562",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "DIXON26JUNFUT",
+      "isFo": true
+    },
+    "EXIDEIND": {
+      "key": "NSE_FO|62568",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "EXIDEIND26JUNFUT",
+      "isFo": true
+    },
+    "FEDERALBNK": {
+      "key": "NSE_FO|62569",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "FEDERALBNK26JUNFUT",
+      "isFo": true
+    },
+    "GAIL": {
+      "key": "NSE_FO|62575",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "GAIL26JUNFUT",
+      "isFo": true
+    },
+    "GLENMARK": {
+      "key": "NSE_FO|62577",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "GLENMARK26JUNFUT",
+      "isFo": true
+    },
+    "GODREJCP": {
+      "key": "NSE_FO|62582",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "GODREJCP26JUNFUT",
+      "isFo": true
+    },
+    "GODREJPROP": {
+      "key": "NSE_FO|62587",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "GODREJPROP26JUNFUT",
+      "isFo": true
+    },
+    "HAVELLS": {
+      "key": "NSE_FO|62590",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "HAVELLS26JUNFUT",
+      "isFo": true
+    },
+    "HDFCAMC": {
+      "key": "NSE_FO|62592",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "HDFCAMC26JUNFUT",
+      "isFo": true
+    },
+    "HINDPETRO": {
+      "key": "NSE_FO|62597",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "HINDPETRO26JUNFUT",
+      "isFo": true
+    },
+    "ICICIGI": {
+      "key": "NSE_FO|62605",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "ICICIGI26JUNFUT",
+      "isFo": true
+    },
+    "ICICIPRULI": {
+      "key": "NSE_FO|62606",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "ICICIPRULI26JUNFUT",
+      "isFo": true
+    },
+    "IDEA": {
+      "key": "NSE_FO|62607",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "IDEA26JUNFUT",
+      "isFo": true
+    },
+    "IDFCFIRSTB": {
+      "key": "NSE_FO|62608",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "IDFCFIRSTB26JUNFUT",
+      "isFo": true
+    },
+    "IEX": {
+      "key": "NSE_FO|62609",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "IEX26JUNFUT",
+      "isFo": true
+    },
+    "INDHOTEL": {
+      "key": "NSE_FO|62615",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "INDHOTEL26JUNFUT",
+      "isFo": true
+    },
+    "INDIGO": {
+      "key": "NSE_FO|62617",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "INDIGO26JUNFUT",
+      "isFo": true
+    },
+    "INDUSTOWER": {
+      "key": "NSE_FO|62619",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "INDUSTOWER26JUNFUT",
+      "isFo": true
+    },
+    "IOC": {
+      "key": "NSE_FO|62622",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "IOC26JUNFUT",
+      "isFo": true
+    },
+    "JINDALSTEL": {
+      "key": "NSE_FO|62630",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "JINDALSTEL26JUNFUT",
+      "isFo": true
+    },
+    "JUBLFOOD": {
+      "key": "NSE_FO|62644",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "JUBLFOOD26JUNFUT",
+      "isFo": true
+    },
+    "LAURUSLABS": {
+      "key": "NSE_FO|62661",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "LAURUSLABS26JUNFUT",
+      "isFo": true
+    },
+    "LICHSGFIN": {
+      "key": "NSE_FO|62662",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "LICHSGFIN26JUNFUT",
+      "isFo": true
+    },
+    "LTF": {
+      "key": "NSE_FO|62666",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "LTF26JUNFUT",
+      "isFo": true
+    },
+    "LUPIN": {
+      "key": "NSE_FO|62674",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "LUPIN26JUNFUT",
+      "isFo": true
+    },
+    "MANAPPURAM": {
+      "key": "NSE_FO|62680",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "MANAPPURAM26JUNFUT",
+      "isFo": true
+    },
+    "MARICO": {
+      "key": "NSE_FO|62682",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "MARICO26JUNFUT",
+      "isFo": true
+    },
+    "MCX": {
+      "key": "NSE_FO|62686",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "MCX26JUNFUT",
+      "isFo": true
+    },
+    "MFSL": {
+      "key": "NSE_FO|62687",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "MFSL26JUNFUT",
+      "isFo": true
+    },
+    "MOTHERSON": {
+      "key": "NSE_FO|62688",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "MOTHERSON26JUNFUT",
+      "isFo": true
+    },
+    "MPHASIS": {
+      "key": "NSE_FO|62694",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "MPHASIS26JUNFUT",
+      "isFo": true
+    },
+    "MUTHOOTFIN": {
+      "key": "NSE_FO|62697",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "MUTHOOTFIN26JUNFUT",
+      "isFo": true
+    },
+    "NATIONALUM": {
+      "key": "NSE_FO|62711",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "NATIONALUM26JUNFUT",
+      "isFo": true
+    },
+    "NAUKRI": {
+      "key": "NSE_FO|62712",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "NAUKRI26JUNFUT",
+      "isFo": true
+    },
+    "NMDC": {
+      "key": "NSE_FO|62716",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "NMDC26JUNFUT",
+      "isFo": true
+    },
+    "OBEROIRLTY": {
+      "key": "NSE_FO|62731",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "OBEROIRLTY26JUNFUT",
+      "isFo": true
+    },
+    "OFSS": {
+      "key": "NSE_FO|62732",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "OFSS26JUNFUT",
+      "isFo": true
+    },
+    "PAGEIND": {
+      "key": "NSE_FO|62739",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "PAGEIND26JUNFUT",
+      "isFo": true
+    },
+    "PERSISTENT": {
+      "key": "NSE_FO|62762",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "PERSISTENT26JUNFUT",
+      "isFo": true
+    },
+    "PETRONET": {
+      "key": "NSE_FO|62763",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "PETRONET26JUNFUT",
+      "isFo": true
+    },
+    "PFC": {
+      "key": "NSE_FO|62764",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "PFC26JUNFUT",
+      "isFo": true
+    },
+    "PIDILITIND": {
+      "key": "NSE_FO|62771",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "PIDILITIND26JUNFUT",
+      "isFo": true
+    },
+    "PNB": {
+      "key": "NSE_FO|62773",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "PNB26JUNFUT",
+      "isFo": true
+    },
+    "POLYCAB": {
+      "key": "NSE_FO|62790",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "POLYCAB26JUNFUT",
+      "isFo": true
+    },
+    "RBLBANK": {
+      "key": "NSE_FO|62795",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "RBLBANK26JUNFUT",
+      "isFo": true
+    },
+    "RECLTD": {
+      "key": "NSE_FO|62797",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "RECLTD26JUNFUT",
+      "isFo": true
+    },
+    "SAIL": {
+      "key": "NSE_FO|62806",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "SAIL26JUNFUT",
+      "isFo": true
+    },
+    "SBICARD": {
+      "key": "NSE_FO|62810",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "SBICARD26JUNFUT",
+      "isFo": true
+    },
+    "SHREECEM": {
+      "key": "NSE_FO|62813",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "SHREECEM26JUNFUT",
+      "isFo": true
+    },
+    "SHRIRAMFIN": {
+      "key": "NSE_FO|62816",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "SHRIRAMFIN26JUNFUT",
+      "isFo": true
+    },
+    "SIEMENS": {
+      "key": "NSE_FO|62825",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "SIEMENS26JUNFUT",
+      "isFo": true
+    },
+    "SRF": {
+      "key": "NSE_FO|62830",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "SRF26JUNFUT",
+      "isFo": true
+    },
+    "TATAPOWER": {
+      "key": "NSE_FO|62849",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "TATAPOWER26JUNFUT",
+      "isFo": true
+    },
+    "TORNTPHARM": {
+      "key": "NSE_FO|62858",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "TORNTPHARM26JUNFUT",
+      "isFo": true
+    },
+    "VOLTAS": {
+      "key": "NSE_FO|62872",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "VOLTAS26JUNFUT",
+      "isFo": true
+    },
+    "ZYDUSLIFE": {
+      "key": "NSE_FO|62878",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "ZYDUSLIFE26JUNFUT",
+      "isFo": true
+    },
+    "NIFTYNXT50": {
+      "key": null,
+      "expiry": null,
+      "tradingSymbol": null,
+      "isFo": false
+    },
+    "AMBER": {
+      "key": "NSE_FO|62359",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "AMBER26JUNFUT",
+      "isFo": true
+    },
+    "ANGELONE": {
+      "key": "NSE_FO|62361",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "ANGELONE26JUNFUT",
+      "isFo": true
+    },
+    "BAJAJHLDNG": {
+      "key": "NSE_FO|62376",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "BAJAJHLDNG26JUNFUT",
+      "isFo": true
+    },
+    "ADANIPOWER": {
+      "key": "NSE_FO|62348",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "ADANIPOWER26JUNFUT",
+      "isFo": true
+    },
+    "BLUESTARCO": {
+      "key": "NSE_FO|62387",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "BLUESTARCO26JUNFUT",
+      "isFo": true
+    },
+    "CDSL": {
+      "key": "NSE_FO|62398",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "CDSL26JUNFUT",
+      "isFo": true
+    },
+    "ADANIGREEN": {
+      "key": "NSE_FO|62344",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "ADANIGREEN26JUNFUT",
+      "isFo": true
+    },
+    "BDL": {
+      "key": "NSE_FO|62381",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "BDL26JUNFUT",
+      "isFo": true
+    },
+    "ETERNAL": {
+      "key": "NSE_FO|62567",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "ETERNAL26JUNFUT",
+      "isFo": true
+    },
+    "CGPOWER": {
+      "key": "NSE_FO|62403",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "CGPOWER26JUNFUT",
+      "isFo": true
+    },
+    "GODFRYPHLP": {
+      "key": "NSE_FO|62581",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "GODFRYPHLP26JUNFUT",
+      "isFo": true
+    },
+    "CAMS": {
+      "key": "NSE_FO|62396",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "CAMS26JUNFUT",
+      "isFo": true
+    },
+    "BSE": {
+      "key": "NSE_FO|62395",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "BSE26JUNFUT",
+      "isFo": true
+    },
+    "APLAPOLLO": {
+      "key": "NSE_FO|62362",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "APLAPOLLO26JUNFUT",
+      "isFo": true
+    },
+    "INDIANB": {
+      "key": "NSE_FO|62616",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "INDIANB26JUNFUT",
+      "isFo": true
+    },
+    "COCHINSHIP": {
+      "key": "NSE_FO|62436",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "COCHINSHIP26JUNFUT",
+      "isFo": true
+    },
+    "IREDA": {
+      "key": "NSE_FO|62623",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "IREDA26JUNFUT",
+      "isFo": true
+    },
+    "DELHIVERY": {
+      "key": "NSE_FO|62557",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "DELHIVERY26JUNFUT",
+      "isFo": true
+    },
+    "DMART": {
+      "key": "NSE_FO|62564",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "DMART26JUNFUT",
+      "isFo": true
+    },
+    "KPITTECH": {
+      "key": "NSE_FO|62660",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "KPITTECH26JUNFUT",
+      "isFo": true
+    },
+    "LODHA": {
+      "key": "NSE_FO|62664",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "LODHA26JUNFUT",
+      "isFo": true
+    },
+    "HYUNDAI": {
+      "key": "NSE_FO|62602",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "HYUNDAI26JUNFUT",
+      "isFo": true
+    },
+    "LTM": {
+      "key": "NSE_FO|62673",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "LTM26JUNFUT",
+      "isFo": true
+    },
+    "FORCEMOT": {
+      "key": "NSE_FO|62572",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "FORCEMOT26JUNFUT",
+      "isFo": true
+    },
+    "GMRAIRPORT": {
+      "key": "NSE_FO|62578",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "GMRAIRPORT26JUNFUT",
+      "isFo": true
+    },
+    "BANKINDIA": {
+      "key": "NSE_FO|62380",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "BANKINDIA26JUNFUT",
+      "isFo": true
+    },
+    "HINDZINC": {
+      "key": "NSE_FO|62599",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "HINDZINC26JUNFUT",
+      "isFo": true
+    },
+    "NYKAA": {
+      "key": "NSE_FO|62719",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "NYKAA26JUNFUT",
+      "isFo": true
+    },
+    "PHOENIXLTD": {
+      "key": "NSE_FO|62766",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "PHOENIXLTD26JUNFUT",
+      "isFo": true
+    },
+    "PNBHOUSING": {
+      "key": "NSE_FO|62777",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "PNBHOUSING26JUNFUT",
+      "isFo": true
+    },
+    "POLICYBZR": {
+      "key": "NSE_FO|62789",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "POLICYBZR26JUNFUT",
+      "isFo": true
+    },
+    "JSWENERGY": {
+      "key": "NSE_FO|62642",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "JSWENERGY26JUNFUT",
+      "isFo": true
+    },
+    "INOXWIND": {
+      "key": "NSE_FO|62621",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "INOXWIND26JUNFUT",
+      "isFo": true
+    },
+    "IRFC": {
+      "key": "NSE_FO|62624",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "IRFC26JUNFUT",
+      "isFo": true
+    },
+    "JIOFIN": {
+      "key": "NSE_FO|62641",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "JIOFIN26JUNFUT",
+      "isFo": true
+    },
+    "RVNL": {
+      "key": "NSE_FO|62803",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "RVNL26JUNFUT",
+      "isFo": true
+    },
+    "KALYANKJIL": {
+      "key": "NSE_FO|62645",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "KALYANKJIL26JUNFUT",
+      "isFo": true
+    },
+    "KAYNES": {
+      "key": "NSE_FO|62646",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "KAYNES26JUNFUT",
+      "isFo": true
+    },
+    "KEI": {
+      "key": "NSE_FO|62647",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "KEI26JUNFUT",
+      "isFo": true
+    },
+    "LICI": {
+      "key": "NSE_FO|62663",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "LICI26JUNFUT",
+      "isFo": true
+    },
+    "SWIGGY": {
+      "key": "NSE_FO|62841",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "SWIGGY26JUNFUT",
+      "isFo": true
+    },
+    "KFINTECH": {
+      "key": "NSE_FO|62648",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "KFINTECH26JUNFUT",
+      "isFo": true
+    },
+    "TMPV": {
+      "key": "NSE_FO|62855",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "TMPV26JUNFUT",
+      "isFo": true
+    },
+    "VBL": {
+      "key": "NSE_FO|62866",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "VBL26JUNFUT",
+      "isFo": true
+    },
+    "360ONE": {
+      "key": "NSE_FO|62331",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "360ONE26JUNFUT",
+      "isFo": true
+    },
+    "MAZDOCK": {
+      "key": "NSE_FO|62685",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "MAZDOCK26JUNFUT",
+      "isFo": true
+    },
+    "MOTILALOFS": {
+      "key": "NSE_FO|62693",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "MOTILALOFS26JUNFUT",
+      "isFo": true
+    },
+    "NAM-INDIA": {
+      "key": "NSE_FO|62710",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "NAM-INDIA26JUNFUT",
+      "isFo": true
+    },
+    "NBCC": {
+      "key": "NSE_FO|62713",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "NBCC26JUNFUT",
+      "isFo": true
+    },
+    "NHPC": {
+      "key": "NSE_FO|62715",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "NHPC26JUNFUT",
+      "isFo": true
+    },
+    "PAYTM": {
+      "key": "NSE_FO|62745",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "PAYTM26JUNFUT",
+      "isFo": true
+    },
+    "PGEL": {
+      "key": "NSE_FO|62765",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "PGEL26JUNFUT",
+      "isFo": true
+    },
+    "OIL": {
+      "key": "NSE_FO|62737",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "OIL26JUNFUT",
+      "isFo": true
+    },
+    "POWERINDIA": {
+      "key": "NSE_FO|62792",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "POWERINDIA26JUNFUT",
+      "isFo": true
+    },
+    "PREMIERENE": {
+      "key": "NSE_FO|62793",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "PREMIERENE26JUNFUT",
+      "isFo": true
+    },
+    "SOLARINDS": {
+      "key": "NSE_FO|62826",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "SOLARINDS26JUNFUT",
+      "isFo": true
+    },
+    "SONACOMS": {
+      "key": "NSE_FO|62827",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "SONACOMS26JUNFUT",
+      "isFo": true
+    },
+    "RADICO": {
+      "key": "NSE_FO|58361",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "RADICO26JUNFUT",
+      "isFo": true
+    },
+    "SAMMAANCAP": {
+      "key": "NSE_FO|62807",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "SAMMAANCAP26JUNFUT",
+      "isFo": true
+    },
+    "TATAELXSI": {
+      "key": "NSE_FO|62848",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "TATAELXSI26JUNFUT",
+      "isFo": true
+    },
+    "TIINDIA": {
+      "key": "NSE_FO|62853",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "TIINDIA26JUNFUT",
+      "isFo": true
+    },
+    "SUZLON": {
+      "key": "NSE_FO|62840",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "SUZLON26JUNFUT",
+      "isFo": true
+    },
+    "UNITDSPR": {
+      "key": "NSE_FO|62863",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "UNITDSPR26JUNFUT",
+      "isFo": true
+    },
+    "VMM": {
+      "key": "NSE_FO|62871",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "VMM26JUNFUT",
+      "isFo": true
+    },
+    "FORTIS": {
+      "key": "NSE_FO|62574",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "FORTIS26JUNFUT",
+      "isFo": true
+    },
+    "MAXHEALTH": {
+      "key": "NSE_FO|62684",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "MAXHEALTH26JUNFUT",
+      "isFo": true
+    },
+    "PATANJALI": {
+      "key": "NSE_FO|62744",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "PATANJALI26JUNFUT",
+      "isFo": true
+    },
+    "PRESTIGE": {
+      "key": "NSE_FO|62794",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "PRESTIGE26JUNFUT",
+      "isFo": true
+    },
+    "SUPREMEIND": {
+      "key": "NSE_FO|62839",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "SUPREMEIND26JUNFUT",
+      "isFo": true
+    },
+    "MANKIND": {
+      "key": "NSE_FO|62681",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "MANKIND26JUNFUT",
+      "isFo": true
+    },
+    "WAAREEENER": {
+      "key": "NSE_FO|62873",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "WAAREEENER26JUNFUT",
+      "isFo": true
+    },
+    "NUVAMA": {
+      "key": "NSE_FO|62718",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "NUVAMA26JUNFUT",
+      "isFo": true
+    },
+    "UNIONBANK": {
+      "key": "NSE_FO|62862",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "UNIONBANK26JUNFUT",
+      "isFo": true
+    },
+    "UNOMINDA": {
+      "key": "NSE_FO|62864",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "UNOMINDA26JUNFUT",
+      "isFo": true
+    },
+    "YESBANK": {
+      "key": "NSE_FO|62875",
+      "expiry": "2026-06-30",
+      "tradingSymbol": "YESBANK26JUNFUT",
+      "isFo": true
+    }
+  }
+}

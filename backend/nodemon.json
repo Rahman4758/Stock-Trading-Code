@@ -1,0 +1,13 @@
+{
+  "ignore": [
+    "*.csv",
+    "*.log",
+    "*.txt",
+    "temp/*",
+    "node_modules/*"
+  ],
+  "watch": [
+    "src/*"
+  ],
+  "ext": "js,json"
+}
