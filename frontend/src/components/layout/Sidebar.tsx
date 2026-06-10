@@ -17,22 +17,24 @@ import {
     Settings,
     ShieldAlert,
     TrendingUp,
+    Zap,
 } from "lucide-react"
 import { runSync, getSyncStatus } from "@/lib/api"
 import { toast } from "sonner"
 
 const sidebarItems = [
-    { title: "Market Scan",     href: "/",               icon: TrendingUp },
-    { title: "Sector Radar",    href: "/sectors",        icon: LineChart },
-    { title: "Money Flow",      href: "/money-flow",     icon: CandlestickChart },
-    { title: "Event Radar",     href: "/event-radar",    icon: Radar },
-    { title: "Strategy Vault",  href: "/strategies",     icon: Layers },
-    { title: "AI Watchlist",    href: "/watchlist",      icon: Eye },
-    { title: "Portfolio",       href: "/portfolio",      icon: PieChart },
-    { title: "Trade Journal",   href: "/journal",        icon: BookOpen },
-    { title: "Active Radar",    href: "/radar",          icon: Activity },
-    { title: "Logic Registry",  href: "/admin/registry", icon: ShieldAlert },
-    { title: "Settings",        href: "/settings",       icon: Settings },
+    { title: "Market Scan",      href: "/",               icon: TrendingUp },
+    { title: "Swing Scanner",    href: "/swing-scanner",  icon: Zap },
+    { title: "Sector Radar",     href: "/sectors",        icon: LineChart },
+    { title: "Money Flow",       href: "/money-flow",     icon: CandlestickChart },
+    { title: "Event Radar",      href: "/event-radar",    icon: Radar },
+    { title: "Strategy Vault",   href: "/strategies",     icon: Layers },
+    { title: "AI Watchlist",     href: "/watchlist",      icon: Eye },
+    { title: "Portfolio",        href: "/portfolio",      icon: PieChart },
+    { title: "Trade Journal",    href: "/journal",        icon: BookOpen },
+    { title: "Active Radar",     href: "/radar",          icon: Activity },
+    { title: "Logic Registry",   href: "/admin/registry", icon: ShieldAlert },
+    { title: "Settings",         href: "/settings",       icon: Settings },
 ]
 
 export function Sidebar() {

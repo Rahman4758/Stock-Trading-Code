@@ -69,9 +69,34 @@ const scheduleDailyPipeline = () => {
         await PaperPriceUpdater.runIntradayForceClose();
     }, { timezone: 'UTC' });
 
+    // 5. Federal Bank Swing Scan — Auto runs daily at 8:00 PM IST (14:30 UTC)
+    // After all EOD data is settled (BhavCopy + OI + Conviction)
+    cron.schedule('30 14 * * 1-5', async () => {
+        console.log('\n[Scheduler] Federal Bank Swing Scan triggered at', new Date().toISOString());
+        try {
+            const SwingScanner = require('../services/SwingScanner');
+            await SwingScanner.runFullScan();
+        } catch (e) {
+            console.error('[Scheduler] SwingScan failed:', e.message);
+        }
+    }, { timezone: 'UTC' });
+
+    // 6. Portfolio Tracking Daily Update — 8:30 PM IST (15:00 UTC)
+    cron.schedule('0 15 * * 1-5', async () => {
+        console.log('\n[Scheduler] Portfolio Tracking Update triggered at', new Date().toISOString());
+        try {
+            const SwingScanner = require('../services/SwingScanner');
+            await SwingScanner.trackPortfolioStocks();
+        } catch (e) {
+            console.error('[Scheduler] Portfolio tracking failed:', e.message);
+        }
+    }, { timezone: 'UTC' });
+
     console.log('[Scheduler] Multi-Agent schedules active:');
     console.log('    - 09:00 IST: Pre-Market Validator');
     console.log('    - 15:45 IST: EOD Pipeline & Trade Journal');
+    console.log('    - 20:00 IST: Federal Bank Swing Scan (auto)');
+    console.log('    - 20:30 IST: Portfolio Tracking Daily Update');
 };
 
 const runPreMarketValidator = async () => {
