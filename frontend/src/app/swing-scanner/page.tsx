@@ -4,7 +4,8 @@ import {
     Zap, RefreshCw, TrendingUp, Shield, Target, AlertTriangle, 
     ChevronDown, ChevronUp, BarChart2, Activity, Briefcase, Star
 } from 'lucide-react'
-import toast, { Toaster } from 'react-hot-toast'
+import { toast, Toaster } from 'sonner'
+import PerformanceHistory from './PerformanceHistory'
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
 
@@ -335,11 +336,12 @@ export default function SwingScanner() {
     const [filter, setFilter] = useState<'ALL' | 'BUY' | 'WATCHLIST' | 'PORTFOLIO'>('ALL')
     const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set())
     const [lastScanInfo, setLastScanInfo] = useState<{ totalScanned?: number; layer2Qualified?: number; finalResults?: number; elapsedSeconds?: number } | null>(null)
+    const [activeTab, setActiveTab] = useState<'SCAN' | 'HISTORY'>('SCAN')
 
     const fetchResults = useCallback(async () => {
         setLoading(true)
         try {
-            const res = await fetch(`${API}/api/v1/swing-scan/results?limit=100`)
+            const res = await fetch(`${API}/swing-scan/results?limit=100`)
             const data = await res.json()
             if (data.success) setResults(data.data || [])
         } catch {
@@ -355,7 +357,7 @@ export default function SwingScanner() {
         setScanning(true)
         const toastId = toast.loading('🔍 Running Federal Bank Swing Scan... (this takes ~5 mins)', { duration: 400000 })
         try {
-            const res = await fetch(`${API}/api/v1/swing-scan/run`, { method: 'POST' })
+            const res = await fetch(`${API}/swing-scan/run`, { method: 'POST' })
             const data = await res.json()
             if (data.success) {
                 setLastScanInfo(data)
@@ -374,7 +376,7 @@ export default function SwingScanner() {
     const handleTrackPortfolio = async () => {
         setTrackingPortfolio(true)
         try {
-            const res = await fetch(`${API}/api/v1/swing-scan/track-portfolio`, { method: 'POST' })
+            const res = await fetch(`${API}/swing-scan/track-portfolio`, { method: 'POST' })
             const data = await res.json()
             if (data.success) {
                 toast.success(`Portfolio tracking updated for ${data.updated} stocks`)
@@ -474,7 +476,27 @@ export default function SwingScanner() {
                 </div>
             </div>
 
-            {/* Results Grid */}
+            {/* Main Tabs */}
+            <div style={{ display: 'flex', gap: 10, borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 16, marginBottom: 24 }}>
+                <button 
+                    onClick={() => setActiveTab('SCAN')}
+                    style={{ padding: '8px 16px', background: activeTab === 'SCAN' ? 'rgba(255,255,255,0.1)' : 'transparent', color: activeTab === 'SCAN' ? '#fff' : '#94a3b8', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14 }}
+                >
+                    Current Scan & Portfolio
+                </button>
+                <button 
+                    onClick={() => setActiveTab('HISTORY')}
+                    style={{ padding: '8px 16px', background: activeTab === 'HISTORY' ? 'rgba(255,255,255,0.1)' : 'transparent', color: activeTab === 'HISTORY' ? '#fff' : '#94a3b8', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14 }}
+                >
+                    Performance History
+                </button>
+            </div>
+
+            {activeTab === 'HISTORY' ? (
+                <PerformanceHistory />
+            ) : (
+                <>
+                    {/* Results Grid */}
             {loading ? (
                 <div style={{ textAlign: 'center', padding: 80, color: '#64748b' }}>
                     <Activity size={32} style={{ margin: '0 auto 16px' }} className="animate-pulse" />
@@ -498,6 +520,8 @@ export default function SwingScanner() {
                         />
                     ))}
                 </div>
+            )}
+                </>
             )}
         </div>
     )

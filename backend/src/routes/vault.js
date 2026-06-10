@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const dynamicMomentumStrategy = require('../strategies/dynamicMomentumStrategy');
+const StrategySignal = require('../models/StrategySignal');
 
 // POST /api/v1/vault/momentum-scan
 // Allows custom filters for the momentum checklist strategy
@@ -25,6 +26,45 @@ router.post('/momentum-scan', async (req, res) => {
         };
 
         const results = await dynamicMomentumStrategy.scan(filters);
+        
+        // Log 9 & 10 rank scores automatically
+        const topResults = results.filter(r => r.score >= 9);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        for (const r of topResults) {
+            try {
+                const exists = await StrategySignal.findOne({
+                    symbol: r.symbol,
+                    strategyName: 'DYNAMIC_MOMENTUM',
+                    entryDate: { $gte: today }
+                });
+                
+                if (!exists) {
+                    // Stop Loss is the closer of (recent swing low) or (50 DMA), but at least 1% below current price.
+                    const dynamicSL = Math.max(r.recentSwingLow || 0, r.sma50 || 0);
+                    const safeSL = Math.min(r.close * 0.99, dynamicSL);
+
+                    await StrategySignal.create({
+                        symbol: r.symbol,
+                        strategyName: 'DYNAMIC_MOMENTUM',
+                        entryDate: new Date(),
+                        entryPrice: r.close,
+                        stopLoss: Number(safeSL.toFixed(2)),
+                        target1: Number((r.close * 1.05).toFixed(2)),
+                        target2: Number((r.close * 1.10).toFixed(2)),
+                        target3: Number((r.close * 1.15).toFixed(2)),
+                        highestPrice: r.close,
+                        lowestPrice: r.close,
+                        status: 'ACTIVE',
+                        algoScore: r.score,
+                        confidence: r.score === 10 ? 'HIGH' : 'MEDIUM'
+                    });
+                }
+            } catch (err) {
+                console.error(`[Vault] Failed to track momentum signal for ${r.symbol}:`, err.message);
+            }
+        }
         
         res.status(200).json({
             success: true,

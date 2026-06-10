@@ -14,6 +14,7 @@ const OiData          = require('../models/OiData');
 const SwingScanResult = require('../models/SwingScanResult');
 const Watchlist       = require('../models/Watchlist');
 const SectorStock     = require('../models/SectorStock');
+const StrategySignal  = require('../models/StrategySignal');
 const convictionService      = require('./ConvictionService');
 const sectorRotationAnalyzer = require('./sectorRotationAnalyzer');
 const llmService             = require('./LLMService');
@@ -31,19 +32,11 @@ class SwingScanner {
         if (!latestDoc) return [];
         const latestDate = latestDoc.date;
 
-        // Get all stocks with latest day data matching basic criteria
+        // Get all stocks with latest day data matching basic criteria (Delivery & Price)
         const candidates = await DailyPrice.find({
             date: latestDate,
             close:       { $gte: 50 },             // Min price ₹50
             deliveryPct: { $gte: 38 },              // Min delivery
-            rsi14:       { $gte: 38, $lte: 78 },   // Not overbought/oversold
-            $expr: {
-                $and: [
-                    { $gte: ['$close', '$sma200'] },                       // Above 200 SMA
-                    { $gte: ['$close', { $multiply: ['$sma50', 0.97] }] }, // Within 3% of 50 SMA
-                    { $gte: ['$rsVsNifty', -1] }                           // RS not deeply negative
-                ]
-            }
         }).select('symbol close sma50 sma200 rsi14 deliveryPct rsVsNifty high52w volume').lean();
 
         // Also match OI signal — exclude bearish OI
@@ -75,16 +68,43 @@ class SwingScanner {
             try {
                 const sym = stock.symbol;
 
-                // Fetch recent price history (60 days)
+                // Fetch recent price history (200 days for SMA200)
                 const prices = await DailyPrice.find({ symbol: sym })
-                    .sort({ date: -1 }).limit(60).lean();
+                    .sort({ date: -1 }).limit(200).lean();
                 if (prices.length < 21) continue;
+
+                // Calculate missing technicals
+                const getSma = (period) => {
+                    if (prices.length < period) return null;
+                    return prices.slice(0, period).reduce((s, p) => s + (p.close || 0), 0) / period;
+                };
+
+                const getRsi = (period) => {
+                    if (prices.length <= period) return 50;
+                    let gains = 0, losses = 0;
+                    for(let i=0; i<period; i++) {
+                        const diff = prices[i].close - prices[i+1].close;
+                        if(diff > 0) gains += diff;
+                        else losses -= diff;
+                    }
+                    if (losses === 0) return 100;
+                    if (gains === 0) return 0;
+                    return 100 - (100 / (1 + (gains / losses)));
+                };
 
                 // Fetch recent OI history
                 const oiDocs = await OiData.find({ symbol: sym })
                     .sort({ date: -1 }).limit(10).lean();
 
                 const latest = prices[0];
+                const sma200 = latest.sma200 || getSma(200) || latest.close;
+                const sma50  = latest.sma50  || getSma(50)  || latest.close;
+                const rsi14  = latest.rsi14  || getRsi(14);
+
+                // Quick technical filter (from Layer 1 that we moved here)
+                if (rsi14 < 35 || rsi14 > 80) continue; 
+                if (latest.close < sma200 * 0.98) continue; // Allow max 2% below 200 SMA
+                if (latest.close < sma50 * 0.95) continue;  // Allow max 5% below 50 SMA
 
                 // ── Delivery trend check ─────────────────────────────
                 const del5  = prices.slice(0, 5).map(p => p.deliveryPct || 0);
@@ -144,7 +164,7 @@ class SwingScanner {
 
                 // ── Support / Resistance ─────────────────────────────
                 const support = {
-                    level1: latest.sma50 || (latest.close * 0.95),
+                    level1: sma50 || (latest.close * 0.95),
                     level2: low20
                 };
                 const resistance = {
@@ -154,8 +174,8 @@ class SwingScanner {
 
                 // ── Algo score (Layer 2 quick score) ─────────────────
                 let algoScore = 0;
-                if (latest.close >= latest.sma200) algoScore += 15;
-                if (latest.close >= latest.sma50)  algoScore += 10;
+                if (latest.close >= sma200)        algoScore += 15;
+                if (latest.close >= sma50)         algoScore += 10;
                 if (higherLows)                    algoScore += 10;
                 if (near52wHigh)                   algoScore += 10;
                 if (latest.deliveryPct >= 45)      algoScore += 10;
@@ -180,9 +200,9 @@ class SwingScanner {
                     symbol: sym,
                     algoScore,
                     currentPrice:  latest.close,
-                    price200emaDiff: latest.sma200 ? ((latest.close - latest.sma200) / latest.sma200) * 100 : 0,
-                    price50emaDiff:  latest.sma50  ? ((latest.close - latest.sma50)  / latest.sma50)  * 100 : 0,
-                    rsi14: latest.rsi14,
+                    price200emaDiff: sma200 ? ((latest.close - sma200) / sma200) * 100 : 0,
+                    price50emaDiff:  sma50  ? ((latest.close - sma50)  / sma50)  * 100 : 0,
+                    rsi14: rsi14,
                     higherLows,
                     near52wHigh,
                     distTo52wHighPct,
@@ -310,6 +330,38 @@ class SwingScanner {
 
                 results.push(record);
 
+                // Check if we should track this signal permanently
+                if (d.action === 'BUY' || d.action === 'STRONG BUY') {
+                    try {
+                        const existingSignal = await StrategySignal.findOne({ 
+                            symbol: stock.symbol, 
+                            strategyName: 'FEDERAL_BANK_SWING',
+                            entryDate: scanDate
+                        });
+
+                        if (!existingSignal) {
+                            await StrategySignal.create({
+                                symbol: stock.symbol,
+                                strategyName: 'FEDERAL_BANK_SWING',
+                                entryDate: scanDate,
+                                entryPrice: stock.currentPrice,
+                                stopLoss: d.stopLoss || (stock.currentPrice * 0.95),
+                                target1: d.target1 || (stock.currentPrice * 1.05),
+                                target2: d.target2 || (stock.currentPrice * 1.10),
+                                target3: d.target3 || (stock.currentPrice * 1.15),
+                                highestPrice: stock.currentPrice,
+                                lowestPrice: stock.currentPrice,
+                                status: 'ACTIVE',
+                                algoScore: stock.algoScore,
+                                confidence: d.confidence
+                            });
+                            console.log(`[SwingScanner] Captured new tracking signal for ${stock.symbol}`);
+                        }
+                    } catch (trackErr) {
+                        console.error(`[SwingScanner] Failed to track StrategySignal for ${stock.symbol}: ${trackErr.message}`);
+                    }
+                }
+
                 // Rate limit: 1 second between LLM calls
                 await new Promise(r => setTimeout(r, 1200));
 
@@ -433,7 +485,81 @@ class SwingScanner {
             }
         }
 
-        console.log(`[SwingScanner] Portfolio tracking updated ${updated} stocks.`);
+        console.log(`[SwingScanner] Layer 4 complete. Updated ${updated} portfolio stocks.`);
+        return { updated };
+    }
+
+    // ─────────────────────────────────────────────
+    // LAYER 5 — STRATEGY SIGNAL PERFORMANCE TRACKING
+    // ─────────────────────────────────────────────
+    async trackStrategySignals() {
+        console.log('[SwingScanner] Layer 5: Running Strategy Signal tracking update...');
+        const activeSignals = await StrategySignal.find({
+            status: { $in: ['ACTIVE', 'T1_HIT', 'T2_HIT'] }
+        });
+        
+        if (!activeSignals.length) {
+            console.log('[SwingScanner] No active signals to track.');
+            return { updated: 0 };
+        }
+
+        const latestDate = (await DailyPrice.findOne().sort({ date: -1 }).select('date').lean())?.date;
+        if (!latestDate) return { updated: 0 };
+
+        let updated = 0;
+        for (const signal of activeSignals) {
+            try {
+                // Fetch latest price data from entry date onwards
+                const prices = await DailyPrice.find({ 
+                    symbol: signal.symbol,
+                    date: { $gte: signal.entryDate }
+                }).sort({ date: -1 }).limit(10).lean();
+                
+                if (!prices || prices.length === 0) continue;
+                const latest = prices[0];
+                
+                // Track extremes
+                if (latest.high > signal.highestPrice) signal.highestPrice = latest.high;
+                if (latest.low < signal.lowestPrice) signal.lowestPrice = latest.low;
+                
+                signal.maxReturnPct = ((signal.highestPrice - signal.entryPrice) / signal.entryPrice) * 100;
+                signal.minReturnPct = ((signal.lowestPrice - signal.entryPrice) / signal.entryPrice) * 100;
+
+                // Evaluate Targets and Stop Loss
+                let newStatus = signal.status;
+                const hitStatus = (statusLabel) => {
+                    if (newStatus !== statusLabel) {
+                        newStatus = statusLabel;
+                        signal.statusHistory.push({ status: newStatus, date: new Date(), price: latest.close });
+                    }
+                };
+
+                // Check Stop Loss first
+                if (latest.low <= signal.stopLoss) {
+                    hitStatus('SL_HIT');
+                    signal.exitDate = latestDate;
+                    signal.exitPrice = signal.stopLoss; // assumed execution at SL
+                    signal.finalPnL = ((signal.exitPrice - signal.entryPrice) / signal.entryPrice) * 100;
+                } else {
+                    // Check targets
+                    if (signal.target3 && latest.high >= signal.target3) {
+                        hitStatus('T3_HIT');
+                    } else if (signal.target2 && latest.high >= signal.target2 && newStatus !== 'T3_HIT') {
+                        hitStatus('T2_HIT');
+                    } else if (signal.target1 && latest.high >= signal.target1 && !['T2_HIT', 'T3_HIT'].includes(newStatus)) {
+                        hitStatus('T1_HIT');
+                    }
+                }
+
+                signal.status = newStatus;
+                await signal.save();
+                updated++;
+            } catch (err) {
+                console.error(`[SwingScanner] Strategy Signal tracking error for ${signal.symbol}: ${err.message}`);
+            }
+        }
+        
+        console.log(`[SwingScanner] Layer 5 complete. Updated ${updated} strategy signals.`);
         return { updated };
     }
 }
