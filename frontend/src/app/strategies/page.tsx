@@ -6,6 +6,7 @@ import { Shield, Zap, Target, Layers, ArrowRight, TrendingUp, Info, SlidersHoriz
 import Link from "next/link"
 import { addToWatchlist } from "@/lib/api"
 import { toast } from "sonner"
+import PerformanceHistory from "../swing-scanner/PerformanceHistory"
 
 const STRATEGIES = [
   { 
@@ -51,6 +52,7 @@ export default function StrategyVault() {
   const [results, setResults] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [infoModalOpen, setInfoModalOpen] = useState<string | null>(null)
+  const [momentumTab, setMomentumTab] = useState<'SCAN' | 'HISTORY'>('SCAN')
 
   // Dynamic Momentum Filters
   const [filters, setFilters] = useState<Record<string, boolean | number>>({
@@ -231,14 +233,36 @@ export default function StrategyVault() {
                 <span className="text-xs text-slate-500 font-bold tracking-widest uppercase">Latest EOD Scan</span>
               </div>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/10">
+            
+            {activeTab === 'DYNAMIC_MOMENTUM' && (
+              <div className="flex items-center gap-2 ml-4">
+                <button 
+                  onClick={() => setMomentumTab('SCAN')}
+                  style={{ padding: '6px 12px', background: momentumTab === 'SCAN' ? 'rgba(255,255,255,0.1)' : 'transparent', color: momentumTab === 'SCAN' ? '#fff' : '#94a3b8', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13 }}
+                >
+                  Scan
+                </button>
+                <button 
+                  onClick={() => setMomentumTab('HISTORY')}
+                  style={{ padding: '6px 12px', background: momentumTab === 'HISTORY' ? 'rgba(255,255,255,0.1)' : 'transparent', color: momentumTab === 'HISTORY' ? '#fff' : '#94a3b8', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13 }}
+                >
+                  History
+                </button>
+              </div>
+            )}
+            
+            <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/10 ml-auto">
               <TrendingUp size={16} className="text-emerald-400" />
               <span className="text-sm font-bold text-slate-300">{results.length} OPPORTUNITIES</span>
             </div>
           </div>
 
           <div className="p-0">
-            {loading ? (
+            {activeTab === 'DYNAMIC_MOMENTUM' && momentumTab === 'HISTORY' ? (
+              <div className="p-6">
+                <PerformanceHistory strategy="DYNAMIC_MOMENTUM" />
+              </div>
+            ) : loading ? (
               <div className="py-32 flex flex-col items-center gap-4">
                 <div className="w-10 h-10 border-4 border-sky-500/20 border-t-sky-500 rounded-full animate-spin" />
                 <p className="text-slate-500 font-bold text-xs tracking-widest uppercase">Running Analysis...</p>

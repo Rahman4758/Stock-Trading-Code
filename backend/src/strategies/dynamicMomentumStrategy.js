@@ -211,6 +211,12 @@ class DynamicMomentumStrategy {
                 if (score >= 8) grade = 'A+';
                 else if (score >= 6) grade = 'Tradable';
 
+                // Calculate recent swing low (lowest low in last 10 days)
+                let recentSwingLow = Infinity;
+                for (let i = 0; i < Math.min(10, priceDocs.length); i++) {
+                    if (priceDocs[i].low < recentSwingLow) recentSwingLow = priceDocs[i].low;
+                }
+
                 results.push({
                     symbol,
                     close,
@@ -222,7 +228,9 @@ class DynamicMomentumStrategy {
                     rsiWeekly: latest.rsiWeekly,
                     cmf: cmf,
                     obv: obv,
-                    volume: latest.volume
+                    volume: latest.volume,
+                    sma50: sma50 || (close * 0.90), // fallback if SMA50 unavailable
+                    recentSwingLow: recentSwingLow !== Infinity ? recentSwingLow : (close * 0.95)
                 });
             }
         }
