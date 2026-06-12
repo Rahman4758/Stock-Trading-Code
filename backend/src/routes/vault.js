@@ -77,5 +77,55 @@ router.post('/momentum-scan', async (req, res) => {
         res.status(500).json({ success: false, error: 'Internal Server Error' });
     }
 });
+// POST /api/v1/vault/v4-scan
+router.post('/v4-scan', async (req, res) => {
+    try {
+        const v4InstitutionalStrategy = require('../strategies/v4InstitutionalStrategy');
+        const results = await v4InstitutionalStrategy.scan();
+        
+        const topResults = results.filter(r => r.score >= 70);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        for (const r of topResults) {
+            try {
+                const exists = await StrategySignal.findOne({
+                    symbol: r.symbol,
+                    strategyName: 'V4_INSTITUTIONAL',
+                    entryDate: { $gte: today }
+                });
+                
+                if (!exists) {
+                    await StrategySignal.create({
+                        symbol: r.symbol,
+                        strategyName: 'V4_INSTITUTIONAL',
+                        entryDate: new Date(),
+                        entryPrice: r.entry,
+                        stopLoss: r.stopLoss,
+                        target1: r.target1,
+                        target2: r.target2,
+                        target3: r.target3,
+                        highestPrice: r.close,
+                        lowestPrice: r.close,
+                        status: 'ACTIVE',
+                        algoScore: r.score,
+                        confidence: r.score >= 85 ? 'HIGH' : 'MEDIUM'
+                    });
+                }
+            } catch (err) {
+                console.error(`[Vault] Failed to track V4 signal for ${r.symbol}:`, err.message);
+            }
+        }
+        
+        res.status(200).json({
+            success: true,
+            count: results.length,
+            data: results
+        });
+    } catch (error) {
+        console.error('[Vault] Error in V4 Institutional scan:', error);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
+    }
+});
 
 module.exports = router;

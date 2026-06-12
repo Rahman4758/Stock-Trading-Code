@@ -8,8 +8,7 @@ const StrategySignal  = require('../models/StrategySignal');
 router.post('/run', async (req, res) => {
     try {
         console.log('[Route] /swing-scan/run triggered');
-        const scanner = new SwingScanner();
-        const result = await scanner.runFullScan();
+        const result = await SwingScanner.runFullScan();
         res.json({ success: true, ...result });
     } catch (err) {
         console.error('[Route] /swing-scan/run error:', err.message);
@@ -20,9 +19,8 @@ router.post('/run', async (req, res) => {
 // POST /api/v1/swing-scan/track-portfolio — Daily portfolio tracking update
 router.post('/track-portfolio', async (req, res) => {
     try {
-        const scanner = new SwingScanner();
-        const result = await scanner.trackPortfolioStocks();
-        const sigResult = await scanner.trackStrategySignals();
+        const result = await SwingScanner.trackPortfolioStocks();
+        const sigResult = await SwingScanner.trackStrategySignals();
         res.json({ success: true, portfolioUpdated: result.updated, signalsUpdated: sigResult.updated });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });

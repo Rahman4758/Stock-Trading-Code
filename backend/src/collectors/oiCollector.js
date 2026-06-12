@@ -68,18 +68,63 @@ class OiCollector extends BaseCollector {
             const records = data.records?.data || [];
 
             let callOi = 0, putOi = 0;
+            let strikesList = [];
+            let allPuts = [];
+            let allCalls = [];
+
             for (const row of records) {
-                if (row.CE) callOi += row.CE.openInterest || 0;
-                if (row.PE) putOi += row.PE.openInterest || 0;
+                const strikePrice = row.strikePrice;
+                if (!strikePrice) continue;
+                strikesList.push(strikePrice);
+
+                if (row.CE) {
+                    const cOi = row.CE.openInterest || 0;
+                    callOi += cOi;
+                    allCalls.push({ strike: strikePrice, oi: cOi, oiChange: row.CE.changeinOpenInterest || 0 });
+                }
+                if (row.PE) {
+                    const pOi = row.PE.openInterest || 0;
+                    putOi += pOi;
+                    allPuts.push({ strike: strikePrice, oi: pOi, oiChange: row.PE.changeinOpenInterest || 0 });
+                }
             }
+
+            // Calculate Max Pain
+            let minLoss = Infinity;
+            let maxPain = 0;
+            
+            for (const testStrike of strikesList) {
+                let totalLoss = 0;
+                for (const row of records) {
+                    const pStrike = row.strikePrice;
+                    if (row.CE) {
+                        const cOi = row.CE.openInterest || 0;
+                        if (testStrike > pStrike) totalLoss += (testStrike - pStrike) * cOi;
+                    }
+                    if (row.PE) {
+                        const pOi = row.PE.openInterest || 0;
+                        if (testStrike < pStrike) totalLoss += (pStrike - testStrike) * pOi;
+                    }
+                }
+                if (totalLoss < minLoss) {
+                    minLoss = totalLoss;
+                    maxPain = testStrike;
+                }
+            }
+
+            allPuts.sort((a, b) => b.oi - a.oi);
+            allCalls.sort((a, b) => b.oi - a.oi);
 
             return {
                 callOi,
                 putOi,
                 pcr: callOi > 0 ? parseFloat((putOi / callOi).toFixed(4)) : null,
+                maxPain,
+                topPutStrikes: allPuts.slice(0, 3),
+                topCallStrikes: allCalls.slice(0, 3)
             };
         } catch {
-            return { callOi: 0, putOi: 0, pcr: null };
+            return { callOi: 0, putOi: 0, pcr: null, maxPain: 0, topPutStrikes: [], topCallStrikes: [] };
         }
     }
 
@@ -138,6 +183,9 @@ class OiCollector extends BaseCollector {
                             ...safeOiData,
                             ...pcrData,
                             oiChangePct: safeOiData.futureOiChangePct, // alias for moneyFlowService
+                            maxPain: pcrData.maxPain || 0,
+                            topPutStrikes: pcrData.topPutStrikes || [],
+                            topCallStrikes: pcrData.topCallStrikes || [],
                             oiSignal,
                         },
                     },

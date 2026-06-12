@@ -15,6 +15,19 @@ const OiDataSchema = new mongoose.Schema(
         callOi: { type: Number },
         putOi: { type: Number },
         pcr: { type: Number }, // Put-Call Ratio = putOi / callOi
+        
+        // Granular Option Chain Data (V4 Strategy)
+        maxPain: { type: Number },
+        topPutStrikes: [{
+            strike: Number,
+            oi: Number,
+            oiChange: Number
+        }],
+        topCallStrikes: [{
+            strike: Number,
+            oi: Number,
+            oiChange: Number
+        }],
 
         // OI Signal Classification
         // LONG_BUILDUP: price↑ + OI↑

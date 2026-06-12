@@ -427,8 +427,8 @@ class UpstoxCollector {
                 else if (priceChange > 0) oiSignal = 'BULLISH';
                 else if (priceChange < 0) oiSignal = 'BEARISH';
 
-                // Get option chain PCR (best-effort for F&O stocks)
-                let callOi = 0, putOi = 0, pcr = 1.0;
+                // Get option chain PCR, Max Pain, and Top Strikes (best-effort for F&O stocks)
+                let callOi = 0, putOi = 0, pcr = 1.0, maxPain = 0, topPutStrikes = [], topCallStrikes = [];
                 if (futInfo?.isFo && futInfo.expiry) {
                     const optionData = await this.getOptionChainWithExpiry(
                         this.toUpstoxKey(stock.symbol), futInfo.expiry
@@ -437,6 +437,9 @@ class UpstoxCollector {
                         callOi = optionData.callOi;
                         putOi = optionData.putOi;
                         pcr = optionData.pcr || 1.0;
+                        maxPain = optionData.maxPain || 0;
+                        topPutStrikes = optionData.topPutStrikes || [];
+                        topCallStrikes = optionData.topCallStrikes || [];
                     }
                 }
 
@@ -453,6 +456,9 @@ class UpstoxCollector {
                             callOi,
                             putOi,
                             pcr,
+                            maxPain,
+                            topPutStrikes,
+                            topCallStrikes,
                             oiSignal,
                             isFo: futInfo?.isFo || false,
                         }
@@ -485,16 +491,62 @@ class UpstoxCollector {
 
             const data = response.data.data || [];
             let callOi = 0, putOi = 0;
+            
+            let allPuts = [];
+            let allCalls = [];
+            let strikesList = [];
 
             for (const strike of data) {
-                if (strike.call_options) callOi += strike.call_options.market_data?.oi || 0;
-                if (strike.put_options) putOi += strike.put_options.market_data?.oi || 0;
+                const strikePrice = strike.strike_price;
+                strikesList.push(strikePrice);
+                
+                if (strike.call_options && strike.call_options.market_data) {
+                    const md = strike.call_options.market_data;
+                    callOi += md.oi || 0;
+                    // Usually we don't have historical OI in live chain, so we assume today's OI as proxy or calculate from volume.
+                    // For now, save current OI.
+                    allCalls.push({ strike: strikePrice, oi: md.oi || 0, oiChange: 0 }); 
+                }
+                if (strike.put_options && strike.put_options.market_data) {
+                    const md = strike.put_options.market_data;
+                    putOi += md.oi || 0;
+                    allPuts.push({ strike: strikePrice, oi: md.oi || 0, oiChange: 0 });
+                }
             }
+            
+            // Calculate Max Pain
+            let minLoss = Infinity;
+            let maxPain = 0;
+            
+            for (const testStrike of strikesList) {
+                let totalLoss = 0;
+                for (const strike of data) {
+                    const pStrike = strike.strike_price;
+                    if (strike.call_options && strike.call_options.market_data) {
+                        const cOi = strike.call_options.market_data.oi || 0;
+                        if (testStrike > pStrike) totalLoss += (testStrike - pStrike) * cOi;
+                    }
+                    if (strike.put_options && strike.put_options.market_data) {
+                        const pOi = strike.put_options.market_data.oi || 0;
+                        if (testStrike < pStrike) totalLoss += (pStrike - testStrike) * pOi;
+                    }
+                }
+                if (totalLoss < minLoss) {
+                    minLoss = totalLoss;
+                    maxPain = testStrike;
+                }
+            }
+
+            allPuts.sort((a, b) => b.oi - a.oi);
+            allCalls.sort((a, b) => b.oi - a.oi);
 
             return {
                 callOi,
                 putOi,
                 pcr: callOi > 0 ? parseFloat((putOi / callOi).toFixed(4)) : null,
+                maxPain,
+                topPutStrikes: allPuts.slice(0, 3),
+                topCallStrikes: allCalls.slice(0, 3)
             };
         } catch (err) {
             console.debug(`[Upstox] Option chain error ${instrumentKey}@${expiryDate}: ${err.response?.data?.errors?.[0]?.message || err.message}`);
