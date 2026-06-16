@@ -15,7 +15,16 @@ class InstitutionalEngine extends BaseEngine {
 
     async analyze(snapshot) {
         if (!snapshot || !snapshot.priceHistory || snapshot.priceHistory.length < 30) {
-            return null;
+            return {
+                setupType: this.id,
+                symbol: snapshot?.symbol || 'UNKNOWN',
+                date: snapshot?.date || new Date(),
+                grade: 'SKIP',
+                action: 'INCOMPLETE DATA',
+                flags: [`Missing History: Needs 30 days, has ${snapshot?.priceHistory?.length || 0}`],
+                compositeScore: 0,
+                finalScore: 0
+            };
         }
 
         // 1. Calculate Institutional Accumulation via unified ConvictionService

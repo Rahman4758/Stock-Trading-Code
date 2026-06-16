@@ -44,6 +44,15 @@ const STRATEGIES = [
     icon: Target,
     color: "#34d399",
     bg: "rgba(52,211,153,0.1)"
+  },
+  {
+    id: "V4_INSTITUTIONAL",
+    name: "V4 Institutional",
+    desc: "100-point Breakout + Pullback algorithmic scorer.",
+    infoText: "Institutional Swing Breakout + Pullback System v4. A highly comprehensive scoring model that checks Max Pain, Strike-level Option premiums, Delivery %, VWAP, Volume, Space from Resistance, and automatically calculates Target and SL levels based on ATR.",
+    icon: Star,
+    color: "#eab308",
+    bg: "rgba(234,179,8,0.1)"
   }
 ];
 
@@ -95,6 +104,9 @@ export default function StrategyVault() {
     try {
       if (activeTab === 'DYNAMIC_MOMENTUM') {
         const response = await api.post('/vault/momentum-scan', filters);
+        setResults(response.data.data);
+      } else if (activeTab === 'V4_INSTITUTIONAL') {
+        const response = await api.post('/vault/v4-scan');
         setResults(response.data.data);
       } else {
         const response = await api.get<ScanResult[]>(`/scan/latest?strategy=${activeTab}`)
@@ -234,7 +246,7 @@ export default function StrategyVault() {
               </div>
             </div>
             
-            {activeTab === 'DYNAMIC_MOMENTUM' && (
+            {(activeTab === 'DYNAMIC_MOMENTUM' || activeTab === 'V4_INSTITUTIONAL') && (
               <div className="flex items-center gap-2 ml-4">
                 <button 
                   onClick={() => setMomentumTab('SCAN')}
@@ -258,9 +270,9 @@ export default function StrategyVault() {
           </div>
 
           <div className="p-0">
-            {activeTab === 'DYNAMIC_MOMENTUM' && momentumTab === 'HISTORY' ? (
+            {(activeTab === 'DYNAMIC_MOMENTUM' || activeTab === 'V4_INSTITUTIONAL') && momentumTab === 'HISTORY' ? (
               <div className="p-6">
-                <PerformanceHistory strategy="DYNAMIC_MOMENTUM" />
+                <PerformanceHistory strategy={activeTab} />
               </div>
             ) : loading ? (
               <div className="py-32 flex flex-col items-center gap-4">
@@ -296,10 +308,10 @@ export default function StrategyVault() {
                         </div>
                         <div className="flex flex-col items-end">
                         <div className="text-2xl font-black" style={{ color: activeStrategy.color }}>
-                          {activeTab === 'DYNAMIC_MOMENTUM' ? `${stock.score}/10` : Math.round(stock.finalScore || 0)}
+                          {activeTab === 'DYNAMIC_MOMENTUM' ? `${stock.score}/10` : activeTab === 'V4_INSTITUTIONAL' ? `${stock.scorePercentage || stock.score}%` : Math.round(stock.finalScore || 0)}
                         </div>
                         <div className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">
-                          {activeTab === 'DYNAMIC_MOMENTUM' ? 'Score' : 'Conviction'}
+                          {activeTab === 'DYNAMIC_MOMENTUM' || activeTab === 'V4_INSTITUTIONAL' ? 'Score' : 'Conviction'}
                         </div>
                       </div>
                     </div>
@@ -313,6 +325,29 @@ export default function StrategyVault() {
                             {key.replace(/([A-Z])/g, ' $1').trim()}
                           </div>
                         ))}
+                      </div>
+                    ) : activeTab === 'V4_INSTITUTIONAL' ? (
+                      <div className="mb-6">
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {stock.isBreakout && <span className="px-2 py-1 bg-sky-500/10 text-sky-400 text-[10px] font-bold uppercase rounded border border-sky-500/20">Breakout Entry</span>}
+                          {stock.isPullback && <span className="px-2 py-1 bg-indigo-500/10 text-indigo-400 text-[10px] font-bold uppercase rounded border border-indigo-500/20">Pullback Entry</span>}
+                          <span className="px-2 py-1 bg-white/5 text-slate-300 text-[10px] font-bold uppercase rounded border border-white/10">Grade: {stock.grade}</span>
+                          {stock.missingData && stock.missingData.length > 0 && (
+                            <span className="px-2 py-1 bg-yellow-500/10 text-yellow-400 text-[10px] font-bold uppercase rounded border border-yellow-500/20 flex items-center gap-1" title={stock.missingData.join(', ')}>
+                              ⚠️ Missing Data ({stock.maxPossibleScore} max)
+                            </span>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 mb-2">
+                          <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                            <div className="text-[10px] font-bold text-slate-500 uppercase mb-1">Target 1</div>
+                            <div className="text-sm font-extrabold text-emerald-400">₹{stock.target1 || "N/A"}</div>
+                          </div>
+                          <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                            <div className="text-[10px] font-bold text-slate-500 uppercase mb-1">Stop Loss</div>
+                            <div className="text-sm font-extrabold text-rose-400">₹{stock.stopLoss || "N/A"}</div>
+                          </div>
+                        </div>
                       </div>
                     ) : (
                       <div className="grid grid-cols-2 gap-4 mb-8">

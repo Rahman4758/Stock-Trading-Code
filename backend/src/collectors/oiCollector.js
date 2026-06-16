@@ -68,19 +68,105 @@ class OiCollector extends BaseCollector {
             const records = data.records?.data || [];
 
             let callOi = 0, putOi = 0;
+            let strikesList = [];
+            let allPuts = [];
+            let allCalls = [];
+
             for (const row of records) {
-                if (row.CE) callOi += row.CE.openInterest || 0;
-                if (row.PE) putOi += row.PE.openInterest || 0;
+                const strikePrice = row.strikePrice;
+                if (!strikePrice) continue;
+                strikesList.push(strikePrice);
+
+                if (row.CE) {
+                    const cOi = row.CE.openInterest || 0;
+                    callOi += cOi;
+                    allCalls.push({
+                        strike: strikePrice,
+                        oi: cOi,
+                        oiChange: row.CE.changeinOpenInterest || 0,
+                        oiChangePct: cOi > 0
+                            ? parseFloat(((row.CE.changeinOpenInterest || 0) / cOi * 100).toFixed(2))
+                            : 0,
+                    });
+                }
+                if (row.PE) {
+                    const pOi = row.PE.openInterest || 0;
+                    putOi += pOi;
+                    allPuts.push({
+                        strike: strikePrice,
+                        oi: pOi,
+                        oiChange: row.PE.changeinOpenInterest || 0,
+                        oiChangePct: pOi > 0
+                            ? parseFloat(((row.PE.changeinOpenInterest || 0) / pOi * 100).toFixed(2))
+                            : 0,
+                    });
+                }
             }
+
+            // Calculate Max Pain
+            let minLoss = Infinity;
+            let maxPain = 0;
+            
+            for (const testStrike of strikesList) {
+                let totalLoss = 0;
+                for (const row of records) {
+                    const pStrike = row.strikePrice;
+                    if (row.CE) {
+                        const cOi = row.CE.openInterest || 0;
+                        if (testStrike > pStrike) totalLoss += (testStrike - pStrike) * cOi;
+                    }
+                    if (row.PE) {
+                        const pOi = row.PE.openInterest || 0;
+                        if (testStrike < pStrike) totalLoss += (pStrike - testStrike) * pOi;
+                    }
+                }
+                if (totalLoss < minLoss) {
+                    minLoss = totalLoss;
+                    maxPain = testStrike;
+                }
+            }
+
+            allPuts.sort((a, b) => b.oi - a.oi);
+            allCalls.sort((a, b) => b.oi - a.oi);
+
+            const topPutStrikes  = allPuts.slice(0, 3);
+            const topCallStrikes = allCalls.slice(0, 3);
 
             return {
                 callOi,
                 putOi,
                 pcr: callOi > 0 ? parseFloat((putOi / callOi).toFixed(4)) : null,
+                maxPain,
+                topPutStrikes,
+                topCallStrikes,
+                putStrikeSignal:  this._computeMultiStrikeSignal(topPutStrikes,  'PUT'),
+                callStrikeSignal: this._computeMultiStrikeSignal(topCallStrikes, 'CALL'),
             };
         } catch {
-            return { callOi: 0, putOi: 0, pcr: null };
+            return {
+                callOi: 0, putOi: 0, pcr: null, maxPain: 0,
+                topPutStrikes: [], topCallStrikes: [],
+                putStrikeSignal: 'NEUTRAL', callStrikeSignal: 'NEUTRAL',
+            };
         }
+    }
+
+    /**
+     * Determine multi-strike OI buildup signal.
+     * A strike is "building" if its OI is increasing by more than 5%.
+     * STRONG = 2 or more of the top 3 strikes building
+     * WEAK   = only 1 of the top 3 striking building
+     * NEUTRAL = none
+     * @param {Array}  strikes  - sorted top-3 array with oiChangePct
+     * @param {string} type     - 'PUT' or 'CALL'
+     * @private
+     */
+    _computeMultiStrikeSignal(strikes, type) {
+        const top3 = strikes.slice(0, 3);
+        const buildingCount = top3.filter(s => (s.oiChangePct || 0) > 5).length;
+        if (buildingCount >= 2) return `STRONG_${type}_BUILDUP`;
+        if (buildingCount === 1) return `WEAK_${type}_BUILDUP`;
+        return 'NEUTRAL';
     }
 
     async collect({ symbols = null, date = null } = {}) {
@@ -137,7 +223,12 @@ class OiCollector extends BaseCollector {
                             date: targetDate,
                             ...safeOiData,
                             ...pcrData,
-                            oiChangePct: safeOiData.futureOiChangePct, // alias for moneyFlowService
+                            oiChangePct:      safeOiData.futureOiChangePct, // alias for moneyFlowService
+                            maxPain:          pcrData.maxPain          || 0,
+                            topPutStrikes:    pcrData.topPutStrikes    || [],
+                            topCallStrikes:   pcrData.topCallStrikes   || [],
+                            putStrikeSignal:  pcrData.putStrikeSignal  || 'NEUTRAL',
+                            callStrikeSignal: pcrData.callStrikeSignal || 'NEUTRAL',
                             oiSignal,
                         },
                     },

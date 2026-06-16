@@ -427,8 +427,9 @@ class UpstoxCollector {
                 else if (priceChange > 0) oiSignal = 'BULLISH';
                 else if (priceChange < 0) oiSignal = 'BEARISH';
 
-                // Get option chain PCR (best-effort for F&O stocks)
-                let callOi = 0, putOi = 0, pcr = 1.0;
+                // Get option chain PCR, Max Pain, and Top Strikes (best-effort for F&O stocks)
+                let callOi = 0, putOi = 0, pcr = 1.0, maxPain = 0, topPutStrikes = [], topCallStrikes = [];
+                let putStrikeSignal = 'NEUTRAL', callStrikeSignal = 'NEUTRAL';
                 if (futInfo?.isFo && futInfo.expiry) {
                     const optionData = await this.getOptionChainWithExpiry(
                         this.toUpstoxKey(stock.symbol), futInfo.expiry
@@ -437,6 +438,11 @@ class UpstoxCollector {
                         callOi = optionData.callOi;
                         putOi = optionData.putOi;
                         pcr = optionData.pcr || 1.0;
+                        maxPain = optionData.maxPain || 0;
+                        topPutStrikes = optionData.topPutStrikes || [];
+                        topCallStrikes = optionData.topCallStrikes || [];
+                        putStrikeSignal = optionData.putStrikeSignal || 'NEUTRAL';
+                        callStrikeSignal = optionData.callStrikeSignal || 'NEUTRAL';
                     }
                 }
 
@@ -453,6 +459,11 @@ class UpstoxCollector {
                             callOi,
                             putOi,
                             pcr,
+                            maxPain,
+                            topPutStrikes,
+                            topCallStrikes,
+                            putStrikeSignal,
+                            callStrikeSignal,
                             oiSignal,
                             isFo: futInfo?.isFo || false,
                         }
@@ -485,21 +496,100 @@ class UpstoxCollector {
 
             const data = response.data.data || [];
             let callOi = 0, putOi = 0;
+            
+            let allPuts = [];
+            let allCalls = [];
+            let strikesList = [];
 
             for (const strike of data) {
-                if (strike.call_options) callOi += strike.call_options.market_data?.oi || 0;
-                if (strike.put_options) putOi += strike.put_options.market_data?.oi || 0;
+                const strikePrice = strike.strike_price;
+                strikesList.push(strikePrice);
+                
+                if (strike.call_options && strike.call_options.market_data) {
+                    const md = strike.call_options.market_data;
+                    const cOi = md.oi || 0;
+                    callOi += cOi;
+                    allCalls.push({ 
+                        strike: strikePrice, 
+                        oi: cOi, 
+                        oiChange: 0, 
+                        oiChangePct: 0 
+                    }); 
+                }
+                if (strike.put_options && strike.put_options.market_data) {
+                    const md = strike.put_options.market_data;
+                    const pOi = md.oi || 0;
+                    putOi += pOi;
+                    allPuts.push({ 
+                        strike: strikePrice, 
+                        oi: pOi, 
+                        oiChange: 0, 
+                        oiChangePct: 0 
+                    });
+                }
             }
+            
+            // Calculate Max Pain
+            let minLoss = Infinity;
+            let maxPain = 0;
+            
+            for (const testStrike of strikesList) {
+                let totalLoss = 0;
+                for (const strike of data) {
+                    const pStrike = strike.strike_price;
+                    if (strike.call_options && strike.call_options.market_data) {
+                        const cOi = strike.call_options.market_data.oi || 0;
+                        if (testStrike > pStrike) totalLoss += (testStrike - pStrike) * cOi;
+                    }
+                    if (strike.put_options && strike.put_options.market_data) {
+                        const pOi = strike.put_options.market_data.oi || 0;
+                        if (testStrike < pStrike) totalLoss += (pStrike - testStrike) * pOi;
+                    }
+                }
+                if (totalLoss < minLoss) {
+                    minLoss = totalLoss;
+                    maxPain = testStrike;
+                }
+            }
+
+            allPuts.sort((a, b) => b.oi - a.oi);
+            allCalls.sort((a, b) => b.oi - a.oi);
+
+            const topPutStrikes = allPuts.slice(0, 3);
+            const topCallStrikes = allCalls.slice(0, 3);
 
             return {
                 callOi,
                 putOi,
                 pcr: callOi > 0 ? parseFloat((putOi / callOi).toFixed(4)) : null,
+                maxPain,
+                topPutStrikes,
+                topCallStrikes,
+                putStrikeSignal: this._computeMultiStrikeSignal(topPutStrikes, 'PUT'),
+                callStrikeSignal: this._computeMultiStrikeSignal(topCallStrikes, 'CALL')
             };
         } catch (err) {
             console.debug(`[Upstox] Option chain error ${instrumentKey}@${expiryDate}: ${err.response?.data?.errors?.[0]?.message || err.message}`);
             return null;
         }
+    }
+
+    /**
+     * Determine multi-strike OI buildup signal.
+     * A strike is "building" if its OI is increasing by more than 5%.
+     * STRONG = 2 or more of the top 3 strikes building
+     * WEAK   = only 1 of the top 3 striking building
+     * NEUTRAL = none
+     * @param {Array}  strikes  - sorted top-3 array with oiChangePct
+     * @param {string} type     - 'PUT' or 'CALL'
+     * @private
+     */
+    _computeMultiStrikeSignal(strikes, type) {
+        const top3 = strikes.slice(0, 3);
+        const buildingCount = top3.filter(s => (s.oiChangePct || 0) > 5).length;
+        if (buildingCount >= 2) return `STRONG_${type}_BUILDUP`;
+        if (buildingCount === 1) return `WEAK_${type}_BUILDUP`;
+        return 'NEUTRAL';
     }
 
 }

@@ -86,9 +86,8 @@ const scheduleDailyPipeline = () => {
         console.log('\n[Scheduler] Portfolio Tracking Update triggered at', new Date().toISOString());
         try {
             const SwingScanner = require('../services/SwingScanner');
-            const scanner = new SwingScanner();
-            await scanner.trackPortfolioStocks();
-            await scanner.trackStrategySignals();
+            await SwingScanner.trackPortfolioStocks();
+            await SwingScanner.trackStrategySignals();
         } catch (e) {
             console.error('[Scheduler] Portfolio tracking failed:', e.message);
         }

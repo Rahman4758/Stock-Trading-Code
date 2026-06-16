@@ -254,15 +254,60 @@ class NsePuppeteerCollector {
         if (!Array.isArray(records)) return null;
 
         let callOi = 0, putOi = 0;
+        let strikesList = [];
+        let allPuts = [];
+        let allCalls = [];
+
         for (const row of records) {
-            if (row.CE) callOi += row.CE.openInterest || row.CE.oi || 0;
-            if (row.PE) putOi += row.PE.openInterest || row.PE.oi || 0;
+            const strikePrice = row.strikePrice;
+            if (strikePrice) strikesList.push(strikePrice);
+
+            if (row.CE) {
+                const cOi = row.CE.openInterest || row.CE.oi || 0;
+                callOi += cOi;
+                if (strikePrice) allCalls.push({ strike: strikePrice, oi: cOi, oiChange: row.CE.changeinOpenInterest || row.CE.changeInOpenInterest || 0 });
+            }
+            if (row.PE) {
+                const pOi = row.PE.openInterest || row.PE.oi || 0;
+                putOi += pOi;
+                if (strikePrice) allPuts.push({ strike: strikePrice, oi: pOi, oiChange: row.PE.changeinOpenInterest || row.PE.changeInOpenInterest || 0 });
+            }
         }
+
+        // Calculate Max Pain
+        let minLoss = Infinity;
+        let maxPain = 0;
+        
+        for (const testStrike of strikesList) {
+            let totalLoss = 0;
+            for (const row of records) {
+                const pStrike = row.strikePrice;
+                if (!pStrike) continue;
+                if (row.CE) {
+                    const cOi = row.CE.openInterest || row.CE.oi || 0;
+                    if (testStrike > pStrike) totalLoss += (testStrike - pStrike) * cOi;
+                }
+                if (row.PE) {
+                    const pOi = row.PE.openInterest || row.PE.oi || 0;
+                    if (testStrike < pStrike) totalLoss += (pStrike - testStrike) * pOi;
+                }
+            }
+            if (totalLoss < minLoss) {
+                minLoss = totalLoss;
+                maxPain = testStrike;
+            }
+        }
+
+        allPuts.sort((a, b) => b.oi - a.oi);
+        allCalls.sort((a, b) => b.oi - a.oi);
 
         return {
             callOi,
             putOi,
             pcr: callOi > 0 ? parseFloat((putOi / callOi).toFixed(4)) : null,
+            maxPain,
+            topPutStrikes: allPuts.slice(0, 3),
+            topCallStrikes: allCalls.slice(0, 3)
         };
     }
 
@@ -617,6 +662,9 @@ class NsePuppeteerCollector {
                             callOi: optData?.callOi || 0,
                             putOi: optData?.putOi || 0,
                             pcr: optData?.pcr,
+                            maxPain: optData?.maxPain || 0,
+                            topPutStrikes: optData?.topPutStrikes || [],
+                            topCallStrikes: optData?.topCallStrikes || [],
                             oiSignal,
                             isSynthetic: !futData, // Mark if futures data was unavailable
                         }
@@ -626,7 +674,7 @@ class NsePuppeteerCollector {
 
                 saved++;
                 const pcrStr = optData?.pcr ? `PCR:${optData.pcr}` : 'PCR:N/A';
-                console.log(`[NSE-OI] ${stock.symbol}: OI ${futureOi} | ${pcrStr} | Signal: ${oiSignal}`);
+                console.log(`[NSE-OI] ${stock.symbol}: OI ${futureOi} | ${pcrStr} | MaxPain: ${optData?.maxPain} | Signal: ${oiSignal}`);
             } catch (err) {
                 console.error(`[NSE-OI] Error ${stock.symbol}: ${err.message}`);
                 failed++;

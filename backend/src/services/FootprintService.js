@@ -31,28 +31,30 @@ class FootprintService {
         const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
 
         // Fetch all data streams in parallel using Repositories
-        const [prices, marketFiiFlow, oiDocs, bulkDeals, latestScore] = await Promise.all([
+        const [prices, marketFiiFlow, oiDocs, bulkDeals, latestScore, latestTwoOi] = await Promise.all([
             priceRepo.getRange(symbol, startDate, endDate),
             fiiRepo.getDailyFlow('TOTAL_MARKET', startDate, endDate), // real NSE market-wide gross buy/sell
             snapshotRepo.getOiRange(symbol, startDate, endDate),
             snapshotRepo.getBulkDeals(symbol, startDate, endDate),
             snapshotRepo.getLatestScore(symbol),
+            snapshotRepo.getLatestTwoOi(symbol),   // for PCR relative shift
         ]);
 
         // ── Build base chart from prices ──────────────────────────────────────
         const chartMap = new Map();
         prices.forEach(p => {
             const dateStr = p.date.toISOString().split('T')[0];
+            const round2 = (n) => n != null ? parseFloat(n.toFixed(2)) : null;
             chartMap.set(dateStr, {
                 date:        dateStr,
-                open:        p.open,
-                high:        p.high,
-                low:         p.low,
-                close:       p.close,
-                volume:      p.volume,
-                deliveryPct: p.deliveryPct || 0,
-                sma20:       p.sma20,
-                sma50:       p.sma50,
+                open:        round2(p.open),
+                high:        round2(p.high),
+                low:         round2(p.low),
+                close:       round2(p.close),
+                volume:      Math.round(p.volume || 0),
+                deliveryPct: round2(p.deliveryPct) || 0,
+                sma20:       round2(p.sma20),
+                sma50:       round2(p.sma50),
             });
         });
 
@@ -124,6 +126,20 @@ class FootprintService {
             }
         }
 
+        // ── PCR Relative Shift ────────────────────────────────────────────────
+        // Compare today's PCR vs yesterday's — no fixed threshold, only directional shift matters
+        const oiToday     = latestTwoOi[0] || null;
+        const oiYesterday = latestTwoOi[1] || null;
+        const pcrToday     = oiToday?.pcr     ?? null;
+        const pcrYesterday = oiYesterday?.pcr  ?? null;
+        let pcrShift     = null;
+        let pcrSentiment = 'NEUTRAL';
+        if (pcrToday !== null && pcrYesterday !== null) {
+            pcrShift = parseFloat((pcrToday - pcrYesterday).toFixed(4));
+            if (pcrShift > 0)  pcrSentiment = 'RISING';   // Put writers more active → Bullish
+            if (pcrShift < 0)  pcrSentiment = 'FALLING';  // Call writers more active → Bearish
+        }
+
         return {
             symbol,
             dataPoints:  chartData.length,
@@ -134,6 +150,18 @@ class FootprintService {
                 scores:           latestScore.scores,
                 anchorDate:       latestScore.date?.toISOString().split('T')[0],
             } : null,
+            // ── Options Intelligence (PCR shift + Multi-Strike Confirmation) ──
+            optionsIntelligence: {
+                pcrToday,
+                pcrYesterday,
+                pcrShift,
+                pcrSentiment,                                               // RISING / FALLING / NEUTRAL
+                putStrikeSignal:  oiToday?.putStrikeSignal  || 'NEUTRAL',  // STRONG/WEAK/NEUTRAL
+                callStrikeSignal: oiToday?.callStrikeSignal || 'NEUTRAL',
+                topPutStrikes:    oiToday?.topPutStrikes    || [],          // top 3 strikes with oiChangePct
+                topCallStrikes:   oiToday?.topCallStrikes   || [],
+                maxPain:          oiToday?.maxPain          ?? null,
+            },
         };
     }
 

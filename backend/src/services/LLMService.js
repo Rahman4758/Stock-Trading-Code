@@ -11,6 +11,13 @@ class LLMService {
                 tools: [{ googleSearch: {} }]
             });
         }
+        
+        this.genAIFlash = null;
+        if (process.env.GEMINI_API_KEY_FLASH) {
+            this.genAIFlash = new GoogleGenerativeAI(process.env.GEMINI_API_KEY_FLASH);
+        } else if (process.env.GEMINI_API_KEY) {
+            this.genAIFlash = this.genAI; // Fallback to main key if flash key is missing
+        }
     }
 
     async analyzeStock(symbol, portfolioData, priceActionData, trendData, momentumData, volumeAnalysis, oiData, fiiDiiData, dailyChanges) {
@@ -200,7 +207,8 @@ Return ONLY a valid JSON object with NO markdown, NO explanation outside JSON:
         let delay = 2000;
         while (retries > 0) {
             try {
-                const jsonModel = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+                if (!this.genAIFlash) throw new Error('API Key for Gemini not configured');
+                const jsonModel = this.genAIFlash.getGenerativeModel({ model: 'gemini-1.5-flash' });
                 const result = await jsonModel.generateContent(prompt);
                 const raw = result.response.text().trim();
                 const clean = raw.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();

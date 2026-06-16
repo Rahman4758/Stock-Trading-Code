@@ -6,6 +6,7 @@ import { getStockDetail, getStockAnalysis, Stock, StockRecommendation } from "@/
 import { ArrowLeft, RefreshCw, AlertTriangle, Info, ArrowUpRight } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
+import { InfoTooltip } from "@/components/ui/InfoTooltip"
 
 const getScoreColor = (score: number) => {
     if (score >= 80) return "text-emerald-500 stroke-emerald-500 fill-emerald-500 bg-emerald-500";
@@ -168,8 +169,14 @@ export default function StockDetailPage() {
                         </div>
 
                         <div style={{ padding: "28px 32px 16px" }}>
-                            <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", color: "#f8fafc" }}>Institutional Strength</div>
-                            <p style={{ fontSize: 14, color: "#94a3b8", marginTop: 6, fontWeight: 500 }}>Composite score based on real-time order flow and accumulation patterns.</p>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", color: "#f8fafc" }}>Institutional Strength</div>
+                                <InfoTooltip 
+                                    title="Conviction Score" 
+                                    content="A pure 1-100 score measuring how heavily 'Smart Money' is buying this stock. Based on 5 factors: FII Flow, Bulk Deals, Futures OI, Delivery Base, and Stealth Accumulation over the last 20 days." 
+                                />
+                            </div>
+                            <p style={{ fontSize: 14, color: "#94a3b8", margin: "6px 0 0", fontWeight: 500 }}>Composite score based on real-time order flow and accumulation patterns.</p>
                         </div>
 
                         <div style={{ padding: "12px 32px 32px", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 40 }}>
@@ -233,6 +240,10 @@ export default function StockDetailPage() {
                             <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: 8 }}>
                                 <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#6366f1" }} />
                                 <span style={{ fontSize: 15, fontWeight: 700, color: "#f1f5f9" }}>Financial Identity</span>
+                                <InfoTooltip 
+                                    content="Basic structural information about the stock, including market capitalization and whether it trades in the Futures & Options (F&O) tier 1 market." 
+                                    size={12}
+                                />
                             </div>
                             <div style={{ padding: "8px 0" }}>
                                 {[
@@ -261,6 +272,10 @@ export default function StockDetailPage() {
                             <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: 8 }}>
                                 <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#f59e0b" }} />
                                 <span style={{ fontSize: 15, fontWeight: 700, color: "#f1f5f9" }}>Raw Market Data</span>
+                                <InfoTooltip 
+                                    content="End of day raw data points used by the engine to calculate accumulation scores." 
+                                    size={12}
+                                />
                             </div>
                             <div style={{ padding: "8px 0" }}>
                                 {[
