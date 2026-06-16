@@ -429,6 +429,7 @@ class UpstoxCollector {
 
                 // Get option chain PCR, Max Pain, and Top Strikes (best-effort for F&O stocks)
                 let callOi = 0, putOi = 0, pcr = 1.0, maxPain = 0, topPutStrikes = [], topCallStrikes = [];
+                let putStrikeSignal = 'NEUTRAL', callStrikeSignal = 'NEUTRAL';
                 if (futInfo?.isFo && futInfo.expiry) {
                     const optionData = await this.getOptionChainWithExpiry(
                         this.toUpstoxKey(stock.symbol), futInfo.expiry
@@ -440,6 +441,8 @@ class UpstoxCollector {
                         maxPain = optionData.maxPain || 0;
                         topPutStrikes = optionData.topPutStrikes || [];
                         topCallStrikes = optionData.topCallStrikes || [];
+                        putStrikeSignal = optionData.putStrikeSignal || 'NEUTRAL';
+                        callStrikeSignal = optionData.callStrikeSignal || 'NEUTRAL';
                     }
                 }
 
@@ -459,6 +462,8 @@ class UpstoxCollector {
                             maxPain,
                             topPutStrikes,
                             topCallStrikes,
+                            putStrikeSignal,
+                            callStrikeSignal,
                             oiSignal,
                             isFo: futInfo?.isFo || false,
                         }
@@ -502,15 +507,25 @@ class UpstoxCollector {
                 
                 if (strike.call_options && strike.call_options.market_data) {
                     const md = strike.call_options.market_data;
-                    callOi += md.oi || 0;
-                    // Usually we don't have historical OI in live chain, so we assume today's OI as proxy or calculate from volume.
-                    // For now, save current OI.
-                    allCalls.push({ strike: strikePrice, oi: md.oi || 0, oiChange: 0 }); 
+                    const cOi = md.oi || 0;
+                    callOi += cOi;
+                    allCalls.push({ 
+                        strike: strikePrice, 
+                        oi: cOi, 
+                        oiChange: 0, 
+                        oiChangePct: 0 
+                    }); 
                 }
                 if (strike.put_options && strike.put_options.market_data) {
                     const md = strike.put_options.market_data;
-                    putOi += md.oi || 0;
-                    allPuts.push({ strike: strikePrice, oi: md.oi || 0, oiChange: 0 });
+                    const pOi = md.oi || 0;
+                    putOi += pOi;
+                    allPuts.push({ 
+                        strike: strikePrice, 
+                        oi: pOi, 
+                        oiChange: 0, 
+                        oiChangePct: 0 
+                    });
                 }
             }
             
@@ -540,18 +555,41 @@ class UpstoxCollector {
             allPuts.sort((a, b) => b.oi - a.oi);
             allCalls.sort((a, b) => b.oi - a.oi);
 
+            const topPutStrikes = allPuts.slice(0, 3);
+            const topCallStrikes = allCalls.slice(0, 3);
+
             return {
                 callOi,
                 putOi,
                 pcr: callOi > 0 ? parseFloat((putOi / callOi).toFixed(4)) : null,
                 maxPain,
-                topPutStrikes: allPuts.slice(0, 3),
-                topCallStrikes: allCalls.slice(0, 3)
+                topPutStrikes,
+                topCallStrikes,
+                putStrikeSignal: this._computeMultiStrikeSignal(topPutStrikes, 'PUT'),
+                callStrikeSignal: this._computeMultiStrikeSignal(topCallStrikes, 'CALL')
             };
         } catch (err) {
             console.debug(`[Upstox] Option chain error ${instrumentKey}@${expiryDate}: ${err.response?.data?.errors?.[0]?.message || err.message}`);
             return null;
         }
+    }
+
+    /**
+     * Determine multi-strike OI buildup signal.
+     * A strike is "building" if its OI is increasing by more than 5%.
+     * STRONG = 2 or more of the top 3 strikes building
+     * WEAK   = only 1 of the top 3 striking building
+     * NEUTRAL = none
+     * @param {Array}  strikes  - sorted top-3 array with oiChangePct
+     * @param {string} type     - 'PUT' or 'CALL'
+     * @private
+     */
+    _computeMultiStrikeSignal(strikes, type) {
+        const top3 = strikes.slice(0, 3);
+        const buildingCount = top3.filter(s => (s.oiChangePct || 0) > 5).length;
+        if (buildingCount >= 2) return `STRONG_${type}_BUILDUP`;
+        if (buildingCount === 1) return `WEAK_${type}_BUILDUP`;
+        return 'NEUTRAL';
     }
 
 }

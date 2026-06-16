@@ -24,7 +24,7 @@ class NR7Strategy {
                 .lean();
         }
 
-        if (!rawPrices || rawPrices.length < 200) return null; // Requires minimum history for EMA 200
+        if (!rawPrices || rawPrices.length < 100) return null; // Requires minimum history
 
         // Reverse to chronological order for math libraries
         const data = rawPrices.reverse();

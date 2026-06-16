@@ -5,6 +5,7 @@ import { useScanResults, useSectorRotation, useDivergences, useInvalidateAll } f
 import { ScanResult, SectorRotationResponse, DivergenceAlert } from "@/lib/api"
 import { ArrowUpRight, TrendingUp, AlertTriangle, Activity, RefreshCw, Zap, Target, TrendingDown, ChevronDown, ChevronUp, CheckCircle2, XCircle } from "lucide-react"
 import Link from "next/link"
+import { InfoTooltip } from "@/components/ui/InfoTooltip"
 
 export default function MarketOverview() {
   const { data: opportunities = [], isLoading: isLoadingScan, isFetching: isFetchingScan } = useScanResults()
@@ -137,14 +138,25 @@ export default function MarketOverview() {
             <p style={{ marginTop: 8, color: "#94a3b8", fontSize: 14, fontWeight: 500 }}>Real-time institutional activity and smart money opportunities.</p>
           </div>
 
-          <button
-            onClick={refreshData}
-            disabled={refreshing}
-            style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 20px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#94a3b8", fontSize: 13, fontWeight: 500, cursor: refreshing ? "not-allowed" : "pointer", backdropFilter: "blur(12px)", opacity: refreshing ? 0.6 : 1, transition: "opacity 0.2s" }}
-          >
+          <div style={{ display: "flex", gap: 12 }}>
+            <Link
+              href="/screener"
+              style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 20px", background: "rgba(129,140,248,0.1)", border: "1px solid rgba(129,140,248,0.3)", borderRadius: 12, color: "#818cf8", fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", cursor: "pointer", backdropFilter: "blur(12px)", transition: "all 0.2s", textDecoration: "none" }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(129,140,248,0.2)"; e.currentTarget.style.color = "#a5b4fc" }}
+              onMouseLeave={e => { e.currentTarget.style.background = "rgba(129,140,248,0.1)"; e.currentTarget.style.color = "#818cf8" }}
+            >
+              <Target size={14} />
+              Screener
+            </Link>
+            <button
+              onClick={refreshData}
+              disabled={refreshing}
+              style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 20px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#94a3b8", fontSize: 13, fontWeight: 500, cursor: refreshing ? "not-allowed" : "pointer", backdropFilter: "blur(12px)", opacity: refreshing ? 0.6 : 1, transition: "opacity 0.2s" }}
+            >
             <RefreshCw size={14} style={{ animation: refreshing ? "spin 1s linear infinite" : "none" }} />
             Refresh Data
-          </button>
+            </button>
+          </div>
         </div>
 
         {/* Metric cards */}
@@ -173,6 +185,10 @@ export default function MarketOverview() {
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                 <Target size={15} color="#818cf8" />
                 <span style={{ fontSize: 15, fontWeight: 600, color: "#e2e8f0" }}>Top Accumulation Opportunities</span>
+                <InfoTooltip 
+                  title="Accumulation Scan" 
+                  content="This list filters stocks where Smart Money (FIIs, DIIs) is buying heavily AND the price chart is forming a strong technical breakout or uptrend. Sorted by highest conviction." 
+                />
               </div>
               <p style={{ fontSize: 12, color: "#94a3b8", margin: 0, fontWeight: 500 }}>Stocks showing strong institutional buying signals</p>
             </div>
@@ -413,6 +429,10 @@ export default function MarketOverview() {
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                 <TrendingUp size={15} color="#38bdf8" />
                 <span style={{ fontSize: 15, fontWeight: 600, color: "#e2e8f0" }}>Sector Rotation Analysis</span>
+                <InfoTooltip 
+                  title="Sector Rotation" 
+                  content="Tracks where institutional money is moving. 'Outperforming' sectors are gaining strength, while 'Lagging' sectors are facing distribution (selling)." 
+                />
               </div>
               <p style={{ fontSize: 12, color: "#475569", margin: 0 }}>Institutional money flow across sectors</p>
             </div>

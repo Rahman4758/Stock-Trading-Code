@@ -12,8 +12,17 @@ class VolatilityEngine extends BaseEngine {
     }
 
     async analyze(snapshot) {
-        if (!snapshot || !snapshot.priceHistory || snapshot.priceHistory.length < 200) {
-            return null;
+        if (!snapshot || !snapshot.priceHistory || snapshot.priceHistory.length < 100) {
+            return {
+                setupType: this.id,
+                symbol: snapshot?.symbol || 'UNKNOWN',
+                date: snapshot?.date || new Date(),
+                grade: 'SKIP',
+                action: 'INCOMPLETE DATA',
+                flags: [`Missing History: Needs 100 days, has ${snapshot?.priceHistory?.length || 0}`],
+                compositeScore: 0,
+                finalScore: 0
+            };
         }
 
         // Call existing strategy but with the clean snapshot

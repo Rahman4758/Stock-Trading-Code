@@ -148,6 +148,25 @@ export interface FootprintDataPoint {
     mfv?: number;              // Money Flow Volume (raw, used for CMF rolling calc)
 }
 
+export interface OiStrike {
+    strike: number;
+    oi: number;
+    oiChange: number;
+    oiChangePct: number;
+}
+
+export interface OptionsIntelligence {
+    pcrToday:         number | null;
+    pcrYesterday:     number | null;
+    pcrShift:         number | null;
+    pcrSentiment:     'RISING' | 'FALLING' | 'NEUTRAL';
+    putStrikeSignal:  'STRONG_PUT_BUILDUP' | 'WEAK_PUT_BUILDUP' | 'NEUTRAL';
+    callStrikeSignal: 'STRONG_CALL_BUILDUP' | 'WEAK_CALL_BUILDUP' | 'NEUTRAL';
+    topPutStrikes:    OiStrike[];
+    topCallStrikes:   OiStrike[];
+    maxPain:          number | null;
+}
+
 export interface FootprintChartResponse {
     symbol: string;
     dataPoints: number;
@@ -158,6 +177,7 @@ export interface FootprintChartResponse {
         scores: SmartMoneyScores;
         anchorDate: string;
     } | null;
+    optionsIntelligence?: OptionsIntelligence | null;
 }
 
 export interface TrackedPortfolioItem {
@@ -183,6 +203,11 @@ export interface PortfolioDailyUpdate {
 // API Calls
 export const getLatestScan = async () => {
     const response = await api.get<ScanResult[]>('/scan/latest');
+    return response.data;
+};
+
+export const getAllScannedStocks = async () => {
+    const response = await api.get<ScanResult[]>('/scan/all');
     return response.data;
 };
 

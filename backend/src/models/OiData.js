@@ -21,13 +21,22 @@ const OiDataSchema = new mongoose.Schema(
         topPutStrikes: [{
             strike: Number,
             oi: Number,
-            oiChange: Number
+            oiChange: Number,
+            oiChangePct: Number,   // % change vs existing OI — used for buildup filter
         }],
         topCallStrikes: [{
             strike: Number,
             oi: Number,
-            oiChange: Number
+            oiChange: Number,
+            oiChangePct: Number,
         }],
+
+        // Multi-Strike Confirmation Signals
+        // STRONG = 2/3 top strikes showing buildup (oiChangePct > 5%)
+        // WEAK   = only 1/3 (ATM only)
+        // NEUTRAL = none
+        putStrikeSignal:  { type: String, enum: ['STRONG_PUT_BUILDUP', 'WEAK_PUT_BUILDUP', 'NEUTRAL'], default: 'NEUTRAL' },
+        callStrikeSignal: { type: String, enum: ['STRONG_CALL_BUILDUP', 'WEAK_CALL_BUILDUP', 'NEUTRAL'], default: 'NEUTRAL' },
 
         // OI Signal Classification
         // LONG_BUILDUP: price↑ + OI↑

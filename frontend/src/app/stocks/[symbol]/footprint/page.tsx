@@ -7,6 +7,7 @@ import { ArrowLeft, Plus, Activity, AlertTriangle, TrendingUp, BarChart3, PieCha
 import Link from "next/link"
 import { ComposedChart, Line, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Area } from "recharts"
 import { motion } from "framer-motion"
+import { InfoTooltip } from "@/components/ui/InfoTooltip"
 
 const RANGE_PRESETS = [
     { label: "1M",  days: 30  },
@@ -151,7 +152,19 @@ export default function FootprintPage() {
             fontSize: 12,
             fontWeight: 600,
             color: "#e2e8f0",
-        }
+        },
+        labelStyle: {
+            color: "#f1f5f9",
+            fontWeight: 700,
+            marginBottom: 4,
+        },
+        itemStyle: {
+            color: "#94a3b8",
+        },
+        formatter: (value: any, name: string) => {
+            if (typeof value === 'number') return [Number(value.toFixed(2)), name];
+            return [value, name];
+        },
     }
 
     // ── Loading / error states ───────────────────────────────────────────────
@@ -348,27 +361,207 @@ export default function FootprintPage() {
 
                     {/* OI Structure */}
                     <div style={metricCard}>
-                        <div style={metricLabel}><BarChart3 size={11} /> OI Structure</div>
-                        <div style={{ fontSize: 18, fontWeight: 900, textTransform: "uppercase", letterSpacing: "-0.02em", color: "#e2e8f0" }}>
-                            {latest?.oiSignal?.replace("_", " ") || "NEUTRAL"}
+                        <div style={metricLabel}>
+                            <BarChart3 size={11} /> OI Structure
+                            <InfoTooltip 
+                                content="Futures Open Interest signal. LONG BUILDUP = price rising + OI rising (Bullish). SHORT COVERING = price rising + OI falling (Bullish). SHORT BUILDUP = price falling + OI rising (Bearish). LONG UNWINDING = price falling + OI falling (Bearish)." 
+                                size={12}
+                            />
                         </div>
-                        <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#334155", marginTop: 6 }}>
-                            {Number(latest?.oiChangePct ?? 0) > 0 ? "+" : ""}{Number(latest?.oiChangePct ?? 0).toFixed(2)}% Interest Change
-                        </div>
-                        <div style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#475569", marginTop: 4 }}>
-                            OI As Of: {latest?.oiDate || latest?.date || "---"}
-                        </div>
+                        {(() => {
+                            const signal = latest?.oiSignal || "NEUTRAL";
+                            let label = "Neutral";
+                            let color = "#64748b";
+                            let bgRgb = "100,116,139";
+                            
+                            if (signal === "LONG_BUILDUP") { label = "Strong Bullish"; color = "#10b981"; bgRgb = "16,185,129"; }
+                            else if (signal === "SHORT_COVERING") { label = "Bullish"; color = "#34d399"; bgRgb = "52,211,153"; }
+                            else if (signal === "SHORT_BUILDUP") { label = "Strong Bearish"; color = "#f43f5e"; bgRgb = "244,63,94"; }
+                            else if (signal === "LONG_UNWINDING") { label = "Bearish"; color = "#fb7185"; bgRgb = "251,113,133"; }
+
+                            return (
+                                <div>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                                        <div style={{ fontSize: 18, fontWeight: 900, textTransform: "uppercase", letterSpacing: "-0.02em", color: "#e2e8f0" }}>
+                                            {signal.replace("_", " ")}
+                                        </div>
+                                        <div style={{ padding: "2px 8px", borderRadius: 4, background: `rgba(${bgRgb},0.12)`, border: `1px solid rgba(${bgRgb},0.4)`, fontSize: 9, fontWeight: 800, color: color, textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                                            {label}
+                                        </div>
+                                    </div>
+                                    <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#334155", marginTop: 8 }}>
+                                        {Number(latest?.oiChangePct ?? 0) > 0 ? "+" : ""}{Number(latest?.oiChangePct ?? 0).toFixed(2)}% Interest Change
+                                    </div>
+                                    <div style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#475569", marginTop: 4 }}>
+                                        OI As Of: {latest?.oiDate || latest?.date || "---"}
+                                    </div>
+                                </div>
+                            );
+                        })()}
                     </div>
 
                     {/* Delivery */}
                     <div style={metricCard}>
-                        <div style={metricLabel}><PieChart size={11} /> Delivery Base</div>
-                        <div style={{ fontSize: 34, fontWeight: 900, letterSpacing: "-0.03em", color: "#f1f5f9" }}>
-                            {Number(latestDelivery?.deliveryPct ?? 0).toFixed(2)}<span style={{ fontSize: 18 }}>%</span>
+                        <div style={metricLabel}>
+                            <PieChart size={11} /> Delivery Base
+                            <InfoTooltip 
+                                content="Percentage of traded volume that was actually taken for delivery (held overnight). > 50% indicates strong conviction from large players." 
+                                size={12}
+                            />
                         </div>
-                        <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#334155", marginTop: 6 }}>Strong Hands Absorption</div>
+                        {(() => {
+                            const pct = Number(latestDelivery?.deliveryPct ?? 0);
+                            let label = "Neutral";
+                            let color = "#64748b";
+                            let bgRgb = "100,116,139";
+                            
+                            if (pct >= 60) { label = "Strong Bullish"; color = "#10b981"; bgRgb = "16,185,129"; }
+                            else if (pct >= 40) { label = "Bullish"; color = "#34d399"; bgRgb = "52,211,153"; }
+                            else if (pct < 20) { label = "Strong Bearish"; color = "#f43f5e"; bgRgb = "244,63,94"; }
+                            else if (pct < 30) { label = "Bearish"; color = "#fb7185"; bgRgb = "251,113,133"; }
+
+                            return (
+                                <div>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 2 }}>
+                                        <div style={{ fontSize: 34, fontWeight: 900, letterSpacing: "-0.03em", color: "#f1f5f9", lineHeight: 1 }}>
+                                            {pct.toFixed(2)}<span style={{ fontSize: 18 }}>%</span>
+                                        </div>
+                                        <div style={{ padding: "2px 8px", borderRadius: 4, background: `rgba(${bgRgb},0.12)`, border: `1px solid rgba(${bgRgb},0.4)`, fontSize: 9, fontWeight: 800, color: color, textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                                            {label}
+                                        </div>
+                                    </div>
+                                    <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#334155", marginTop: 8 }}>Strong Hands Absorption</div>
+                                </div>
+                            );
+                        })()}
                     </div>
                 </div>
+
+                {/* ── Options Intelligence ─────────────────────────────────────── */}
+                {chartData?.optionsIntelligence && (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16 }}>
+
+                        {/* PCR Relative Shift */}
+                        {(() => {
+                            const oi = chartData.optionsIntelligence!;
+                            const isRising  = oi.pcrSentiment === 'RISING';
+                            const isFalling = oi.pcrSentiment === 'FALLING';
+                            const accentColor = isRising ? "#10b981" : isFalling ? "#f43f5e" : "#64748b";
+                            const accentRgb   = isRising ? "16,185,129" : isFalling ? "244,63,94" : "100,116,139";
+                            return (
+                                <div style={{ ...glass, background: `rgba(${accentRgb},0.03)`, borderColor: `rgba(${accentRgb},0.15)`, padding: "18px 20px" }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                                        <div>
+                                            <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: accentColor, marginBottom: 6 }}>PCR Shift</div>
+                                            <div style={{ fontSize: 28, fontWeight: 900, letterSpacing: "-0.03em", color: "#f1f5f9", fontFamily: "monospace" }}>
+                                                {oi.pcrToday != null ? oi.pcrToday.toFixed(2) : "---"}
+                                            </div>
+                                            <div style={{ fontSize: 10, fontWeight: 600, color: "#475569", marginTop: 4 }}>
+                                                Prev: <span style={{ color: "#94a3b8" }}>{oi.pcrYesterday != null ? oi.pcrYesterday.toFixed(2) : "---"}</span>
+                                            </div>
+                                        </div>
+                                        <div style={{ textAlign: "right" }}>
+                                            <div style={{ fontSize: 20, fontWeight: 900, color: accentColor, fontFamily: "monospace" }}>
+                                                {oi.pcrShift != null ? `${oi.pcrShift > 0 ? "+" : ""}${oi.pcrShift.toFixed(4)}` : "---"}
+                                            </div>
+                                            <div style={{ marginTop: 6, padding: "4px 10px", borderRadius: 99, background: `rgba(${accentRgb},0.12)`, border: `1px solid rgba(${accentRgb},0.3)`, fontSize: 9, fontWeight: 800, letterSpacing: "0.15em", textTransform: "uppercase", color: accentColor }}>
+                                                {isRising ? "↑ Bullish Bias" : isFalling ? "↓ Bearish Bias" : "Neutral"}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style={{ marginTop: 12, fontSize: 9, fontWeight: 600, color: "#334155", lineHeight: 1.6 }}>
+                                        {isRising  && "Put writers more active → market expects support to hold"}
+                                        {isFalling && "Call writers more active → market expects resistance to hold"}
+                                        {!isRising && !isFalling && "No directional shift in put/call activity"}
+                                    </div>
+                                </div>
+                            );
+                        })()}
+
+                        {/* Multi-Strike Put Confirmation */}
+                        {(() => {
+                            const oi = chartData.optionsIntelligence!;
+                            const sig = oi.putStrikeSignal;
+                            const isStrong = sig === 'STRONG_PUT_BUILDUP';
+                            const isWeak   = sig === 'WEAK_PUT_BUILDUP';
+                            const accentColor = isStrong ? "#10b981" : isWeak ? "#f59e0b" : "#64748b";
+                            const accentRgb   = isStrong ? "16,185,129" : isWeak ? "245,158,11" : "100,116,139";
+                            return (
+                                <div style={{ ...glass, background: `rgba(${accentRgb},0.03)`, borderColor: `rgba(${accentRgb},0.15)`, padding: "18px 20px" }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                                        <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: accentColor }}>Put Support Confirmation</div>
+                                        <div style={{ padding: "3px 10px", borderRadius: 99, background: `rgba(${accentRgb},0.12)`, border: `1px solid rgba(${accentRgb},0.3)`, fontSize: 9, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: accentColor }}>
+                                            {isStrong ? "STRONG 2/3" : isWeak ? "WEAK 1/3" : "NEUTRAL"}
+                                        </div>
+                                    </div>
+                                    {oi.topPutStrikes.length > 0 ? (
+                                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                                            {oi.topPutStrikes.map((s, i) => {
+                                                const pct = s.oiChangePct || 0;
+                                                const isBuilding = pct > 5;
+                                                return (
+                                                    <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 10px", borderRadius: 8, background: isBuilding ? "rgba(16,185,129,0.06)" : "rgba(255,255,255,0.02)", border: `1px solid ${isBuilding ? "rgba(16,185,129,0.2)" : "rgba(255,255,255,0.05)"}` }}>
+                                                        <span style={{ fontSize: 12, fontWeight: 800, color: "#f1f5f9", fontFamily: "monospace" }}>₹{s.strike}</span>
+                                                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                                            <span style={{ fontSize: 10, fontWeight: 600, color: "#475569" }}>{(s.oi / 1000).toFixed(0)}K OI</span>
+                                                            <span style={{ fontSize: 11, fontWeight: 800, color: isBuilding ? "#10b981" : pct < 0 ? "#f43f5e" : "#64748b", fontFamily: "monospace" }}>
+                                                                {pct > 0 ? "+" : ""}{pct.toFixed(1)}%
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <div style={{ fontSize: 10, color: "#334155", fontWeight: 600 }}>No F&O data available for this stock</div>
+                                    )}
+                                </div>
+                            );
+                        })()}
+
+                        {/* Multi-Strike Call Confirmation */}
+                        {(() => {
+                            const oi = chartData.optionsIntelligence!;
+                            const sig = oi.callStrikeSignal;
+                            const isStrong = sig === 'STRONG_CALL_BUILDUP';
+                            const isWeak   = sig === 'WEAK_CALL_BUILDUP';
+                            const accentColor = isStrong ? "#f43f5e" : isWeak ? "#f59e0b" : "#64748b";
+                            const accentRgb   = isStrong ? "244,63,94" : isWeak ? "245,158,11" : "100,116,139";
+                            return (
+                                <div style={{ ...glass, background: `rgba(${accentRgb},0.03)`, borderColor: `rgba(${accentRgb},0.15)`, padding: "18px 20px" }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                                        <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: accentColor }}>Call Resistance Confirmation</div>
+                                        <div style={{ padding: "3px 10px", borderRadius: 99, background: `rgba(${accentRgb},0.12)`, border: `1px solid rgba(${accentRgb},0.3)`, fontSize: 9, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: accentColor }}>
+                                            {isStrong ? "STRONG 2/3" : isWeak ? "WEAK 1/3" : "NEUTRAL"}
+                                        </div>
+                                    </div>
+                                    {oi.topCallStrikes.length > 0 ? (
+                                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                                            {oi.topCallStrikes.map((s, i) => {
+                                                const pct = s.oiChangePct || 0;
+                                                const isBuilding = pct > 5;
+                                                return (
+                                                    <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 10px", borderRadius: 8, background: isBuilding ? "rgba(244,63,94,0.06)" : "rgba(255,255,255,0.02)", border: `1px solid ${isBuilding ? "rgba(244,63,94,0.2)" : "rgba(255,255,255,0.05)"}` }}>
+                                                        <span style={{ fontSize: 12, fontWeight: 800, color: "#f1f5f9", fontFamily: "monospace" }}>₹{s.strike}</span>
+                                                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                                            <span style={{ fontSize: 10, fontWeight: 600, color: "#475569" }}>{(s.oi / 1000).toFixed(0)}K OI</span>
+                                                            <span style={{ fontSize: 11, fontWeight: 800, color: isBuilding ? "#f43f5e" : pct < 0 ? "#10b981" : "#64748b", fontFamily: "monospace" }}>
+                                                                {pct > 0 ? "+" : ""}{pct.toFixed(1)}%
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <div style={{ fontSize: 10, color: "#334155", fontWeight: 600 }}>No F&O data available for this stock</div>
+                                    )}
+                                </div>
+                            );
+                        })()}
+
+                    </div>
+                )}
 
                 {/* ── Price Convergence Chart ──────────────────────────────────── */}
                 <div style={glass}>
@@ -397,7 +590,7 @@ export default function FootprintPage() {
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.04)" />
                                 <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: "#334155" }} minTickGap={50} />
-                                <YAxis domain={["auto", "auto"]} orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: "#334155" }} />
+                                <YAxis domain={["auto", "auto"]} orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: "#334155" }} tickFormatter={(v) => Number(v).toFixed(2)} />
                                 <Tooltip {...tooltipStyle} />
                                 <Area type="monotone" dataKey="close" stroke="none" fillOpacity={1} fill="url(#colorPrice)" />
                                 <Line type="monotone" dataKey="close" stroke="#818cf8" strokeWidth={2.5} dot={false} name="Close" />
@@ -407,6 +600,156 @@ export default function FootprintPage() {
                         </ResponsiveContainer>
                     </div>
                 </div>
+
+                {/* ── OI Strike Profile ────────────────────────────────────────── */}
+                {chartData?.optionsIntelligence && (() => {
+                    const oi = chartData.optionsIntelligence!;
+                    const currentPrice = latest?.close ?? 0;
+
+                    // Build unified strike map (put + call combined)
+                    const strikeMap = new Map<number, { putOi: number; callOi: number }>();
+                    (oi.topPutStrikes || []).forEach(s => {
+                        const e = strikeMap.get(s.strike) || { putOi: 0, callOi: 0 };
+                        e.putOi = s.oi;
+                        strikeMap.set(s.strike, e);
+                    });
+                    (oi.topCallStrikes || []).forEach(s => {
+                        const e = strikeMap.get(s.strike) || { putOi: 0, callOi: 0 };
+                        e.callOi = s.oi;
+                        strikeMap.set(s.strike, e);
+                    });
+
+                    const rows = Array.from(strikeMap.entries())
+                        .map(([strike, v]) => ({ strike, ...v }))
+                        .sort((a, b) => b.strike - a.strike); // highest price at top
+
+                    if (rows.length === 0) return null;
+                    const maxOi = Math.max(...rows.map(r => Math.max(r.putOi, r.callOi)));
+
+                    return (
+                        <div style={glass}>
+                            {/* Header */}
+                            <div style={{ padding: "16px 20px 12px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+                                <div>
+                                    <div style={{ fontSize: 13, fontWeight: 700, color: "#f1f5f9", letterSpacing: "-0.01em" }}>OI Strike Profile</div>
+                                    <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#334155", marginTop: 3 }}>Options Open Interest · Support & Resistance Map</div>
+                                </div>
+                                <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                        <div style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(16,185,129,0.7)" }} />
+                                        <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", color: "#475569" }}>Put OI (Support)</span>
+                                    </div>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                        <div style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(244,63,94,0.7)" }} />
+                                        <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", color: "#475569" }}>Call OI (Resistance)</span>
+                                    </div>
+                                    {oi.maxPain != null && (
+                                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                            <div style={{ width: 12, height: 2, background: "#f59e0b" }} />
+                                            <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", color: "#f59e0b" }}>Max Pain ₹{oi.maxPain}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Column headers */}
+                            <div style={{ display: "grid", gridTemplateColumns: "60px 1fr 80px 1fr", gap: 8, padding: "10px 24px 4px", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                                <div />
+                                <div style={{ textAlign: "right", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#10b981", paddingRight: 8 }}>← Put OI</div>
+                                <div style={{ textAlign: "center", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#475569" }}>Strike</div>
+                                <div style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#f43f5e" }}>Call OI →</div>
+                            </div>
+
+                            {/* Rows */}
+                            <div style={{ padding: "8px 24px 16px", display: "flex", flexDirection: "column", gap: 0 }}>
+                                {rows.map((row, i) => {
+                                    const putPct  = maxOi > 0 ? (row.putOi  / maxOi) * 100 : 0;
+                                    const callPct = maxOi > 0 ? (row.callOi / maxOi) * 100 : 0;
+                                    const isAboveCurrent = currentPrice > 0 && row.strike > currentPrice;
+                                    const isBelowCurrent = currentPrice > 0 && row.strike < currentPrice;
+                                    const isMaxPain = oi.maxPain != null && row.strike === oi.maxPain;
+                                    // Insert CMP marker between rows where price crosses
+                                    const showCmpMarker = i > 0 && currentPrice > 0 && rows[i - 1].strike > currentPrice && row.strike <= currentPrice;
+
+                                    return (
+                                        <div key={row.strike}>
+                                            {/* Current Market Price divider */}
+                                            {showCmpMarker && (
+                                                <div style={{ position: "relative", margin: "4px -24px", zIndex: 2 }}>
+                                                    <div style={{ height: 1, background: "linear-gradient(90deg, transparent 2%, rgba(129,140,248,0.6) 20%, rgba(129,140,248,0.6) 80%, transparent 98%)" }} />
+                                                    <div style={{ position: "absolute", right: 24, top: -9, background: "rgba(9,13,31,0.95)", border: "1px solid rgba(129,140,248,0.5)", borderRadius: 4, padding: "2px 8px", fontSize: 10, fontWeight: 800, color: "#818cf8", fontFamily: "monospace" }}>
+                                                        ₹{currentPrice.toFixed(1)} CMP
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div style={{ display: "grid", gridTemplateColumns: "60px 1fr 80px 1fr", gap: 8, alignItems: "center", padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,0.025)" }}>
+
+                                                {/* OI labels left side */}
+                                                <div style={{ textAlign: "right", paddingRight: 8, display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "center" }}>
+                                                    {row.putOi > 0 && (
+                                                        <span style={{ fontSize: 9, fontWeight: 700, color: "#10b981", fontFamily: "monospace" }}>
+                                                            {(row.putOi / 100000).toFixed(1)}L
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {/* Put bar — grows from center LEFT */}
+                                                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", height: 24 }}>
+                                                    <div style={{
+                                                        width: `${Math.max(putPct, 0.5)}%`,
+                                                        height: 20,
+                                                        background: row.putOi > 0
+                                                            ? `linear-gradient(to left, rgba(16,185,129,0.8), rgba(16,185,129,0.2))`
+                                                            : "transparent",
+                                                        borderRadius: "3px 0 0 3px",
+                                                        minWidth: row.putOi > 0 ? 3 : 0,
+                                                        boxShadow: row.putOi > 0 && putPct > 60 ? "0 0 8px rgba(16,185,129,0.3)" : "none",
+                                                    }} />
+                                                </div>
+
+                                                {/* Strike price center */}
+                                                <div style={{ textAlign: "center" }}>
+                                                    <span style={{
+                                                        display: "inline-block",
+                                                        padding: "2px 8px",
+                                                        borderRadius: 4,
+                                                        fontSize: 11, fontWeight: 800, fontFamily: "monospace",
+                                                        color: isMaxPain ? "#f59e0b" : isAboveCurrent ? "#fca5a5" : isBelowCurrent ? "#86efac" : "#f1f5f9",
+                                                        background: isMaxPain ? "rgba(245,158,11,0.12)" : isAboveCurrent ? "rgba(244,63,94,0.06)" : isBelowCurrent ? "rgba(16,185,129,0.06)" : "rgba(255,255,255,0.04)",
+                                                        border: isMaxPain ? "1px solid rgba(245,158,11,0.3)" : "1px solid rgba(255,255,255,0.06)",
+                                                    }}>
+                                                        {row.strike}
+                                                    </span>
+                                                    {isMaxPain && <div style={{ fontSize: 7, color: "#f59e0b", fontWeight: 800, letterSpacing: "0.1em", marginTop: 1 }}>MAX PAIN</div>}
+                                                </div>
+
+                                                {/* Call bar — grows from center RIGHT */}
+                                                <div style={{ display: "flex", alignItems: "center", gap: 6, height: 24 }}>
+                                                    <div style={{
+                                                        width: `${Math.max(callPct, 0.5)}%`,
+                                                        height: 20,
+                                                        background: row.callOi > 0
+                                                            ? `linear-gradient(to right, rgba(244,63,94,0.8), rgba(244,63,94,0.2))`
+                                                            : "transparent",
+                                                        borderRadius: "0 3px 3px 0",
+                                                        minWidth: row.callOi > 0 ? 3 : 0,
+                                                        boxShadow: row.callOi > 0 && callPct > 60 ? "0 0 8px rgba(244,63,94,0.3)" : "none",
+                                                    }} />
+                                                    {row.callOi > 0 && (
+                                                        <span style={{ fontSize: 9, fontWeight: 700, color: "#f43f5e", fontFamily: "monospace", whiteSpace: "nowrap" }}>
+                                                            {(row.callOi / 100000).toFixed(1)}L
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    );
+                })()}
 
                 {/* ── Flow + OI row ────────────────────────────────────────────── */}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 20 }}>
@@ -430,18 +773,19 @@ export default function FootprintPage() {
                                 <ComposedChart data={chartData?.chartData || []} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                                     <defs>
                                         <linearGradient id="deliveryGrad" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
-                                            <stop offset="95%" stopColor="#10b981" stopOpacity={0.05} />
+                                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+                                            <stop offset="95%" stopColor="#10b981" stopOpacity={0.2} />
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.04)" />
-                                    <XAxis dataKey="date" hide />
-                                    <YAxis hide />
+                                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: "#64748b" }} minTickGap={30} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: "#64748b" }} width={40} tickFormatter={(v) => (v / 1000).toFixed(0) + 'k'} />
                                     <Tooltip {...tooltipStyle} formatter={(v: number) => typeof v === 'number' ? v.toLocaleString(undefined, {maximumFractionDigits: 0}) : v} />
                                     <Bar
                                         dataKey="deliveryFlow"
                                         name="Absorbed Shares"
                                         radius={[3, 3, 0, 0]}
+                                        fill="url(#deliveryGrad)"
                                     />
                                 </ComposedChart>
                             </ResponsiveContainer>
@@ -451,16 +795,29 @@ export default function FootprintPage() {
                     <div style={chartCard("56,189,248")}>
                         <div style={{ padding: "16px 20px 12px", borderBottom: "1px solid rgba(56,189,248,0.1)" }}>
                             <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#38bdf8" }}>Derivative Long/Short Density</div>
+                            <div style={{ fontSize: 10, color: "#475569", marginTop: 3, fontWeight: 600 }}>
+                                <span style={{ color: "#10b981" }}>Green (+): Bullish Bias</span> · <span style={{ color: "#f43f5e" }}>Red (-): Bearish Bias</span>
+                            </div>
                         </div>
                         <div style={{ height: 250, padding: "12px 0 8px" }}>
                             <ResponsiveContainer width="100%" height="100%">
                                 <ComposedChart data={chartData?.chartData || []} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.04)" />
-                                    <XAxis dataKey="date" hide />
-                                    <YAxis hide domain={["auto", "auto"]} />
+                                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: "#64748b" }} minTickGap={30} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: "#64748b" }} domain={["auto", "auto"]} width={40} />
                                     <Tooltip {...tooltipStyle} />
                                     <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" strokeWidth={2} />
-                                    <Bar dataKey="oiChangePct" name="OI Intensity" radius={[4, 4, 0, 0]} fill="#3b82f6" />
+                                    <Bar dataKey="oiChangePct" name="OI Intensity" radius={[4, 4, 0, 0]}>
+                                        {(chartData?.chartData || []).map((entry, index) => {
+                                            const sig = entry.oiSignal;
+                                            const isBullish = sig === 'LONG_BUILDUP' || sig === 'SHORT_COVERING' || sig === 'BULLISH';
+                                            const isBearish = sig === 'SHORT_BUILDUP' || sig === 'LONG_UNWINDING' || sig === 'BEARISH';
+                                            let color = "#64748b"; // default slate
+                                            if (isBullish) color = "#10b981";
+                                            else if (isBearish) color = "#f43f5e";
+                                            return <Cell key={`cell-${index}`} fill={color} />;
+                                        })}
+                                    </Bar>
                                 </ComposedChart>
                             </ResponsiveContainer>
                         </div>
@@ -480,9 +837,9 @@ export default function FootprintPage() {
                             <ResponsiveContainer width="100%" height="100%">
                                 <ComposedChart data={chartData?.chartData || []} margin={{ top: 10, right: 10, left: 10, bottom: 10 }} barGap="-100%">
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.04)" />
-                                    <XAxis dataKey="date" hide />
-                                    <YAxis yAxisId="left" hide />
-                                    <YAxis yAxisId="right" orientation="right" hide />
+                                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: "#64748b" }} minTickGap={30} />
+                                    <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: "#64748b" }} width={45} tickFormatter={(v) => (v / 1000).toFixed(0) + 'k'} />
+                                    <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: "#64748b" }} width={35} />
                                     <Tooltip {...tooltipStyle} formatter={(v: number, name: string) => [v != null ? v.toLocaleString(undefined, { maximumFractionDigits: 0 }) : 'N/A', name]} />
                                     <Bar yAxisId="left" dataKey="volume" name="Total Volume" fill="#334155" opacity={0.35} radius={[2, 2, 0, 0]} />
                                     <Bar yAxisId="left" dataKey="deliveryFlow" name="shares delivered (strong-hands)" fill="#8b5cf6" opacity={0.85} radius={[3, 3, 0, 0]} />
@@ -502,8 +859,8 @@ export default function FootprintPage() {
                                 <ResponsiveContainer width="100%" height="100%">
                                     <ComposedChart data={chartData.chartData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.04)" />
-                                        <XAxis dataKey="date" hide />
-                                        <YAxis hide />
+                                        <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: "#64748b" }} minTickGap={30} />
+                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: "#64748b" }} width={40} tickFormatter={(v) => (v / 1000).toFixed(0) + 'k'} />
                                         <Tooltip {...tooltipStyle} />
                                         <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" strokeWidth={2} />
                                         <Bar dataKey="bulkBuys" name="Entry" fill="#10b981" radius={[4, 4, 0, 0]} />

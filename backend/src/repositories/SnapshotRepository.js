@@ -103,6 +103,20 @@ class SnapshotRepository {
             .lean();
     }
 
+    /**
+     * Get the latest 2 OI records for a symbol — used for PCR relative shift calculation.
+     * [0] = today, [1] = yesterday
+     * @param {string} symbol
+     * @returns {Promise<Array>}
+     */
+    async getLatestTwoOi(symbol) {
+        return OiData
+            .find({ symbol: symbol.toUpperCase() })
+            .sort({ date: -1 })
+            .limit(2)
+            .lean();
+    }
+
     // ── BulkDeal ───────────────────────────────────────────────────────────────
 
     /**
