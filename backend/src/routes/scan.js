@@ -24,10 +24,20 @@ router.get('/latest', async (req, res) => {
             .sort({ finalScore: -1, compositeScore: -1 })
             .lean();
 
+        const compositeScoreMap = new Map();
+        for (const s of rawScores) {
+            if (s.setupType === 'CLASSIC_INSTITUTIONAL' && s.compositeScore) {
+                compositeScoreMap.set(s.symbol, s.compositeScore);
+            }
+        }
+
         // Deduplicate by symbol
         const uniqueScoresMap = new Map();
         for (const score of rawScores) {
             if (!uniqueScoresMap.has(score.symbol)) {
+                if (compositeScoreMap.has(score.symbol)) {
+                    score.compositeScore = compositeScoreMap.get(score.symbol);
+                }
                 uniqueScoresMap.set(score.symbol, score);
             }
         }
@@ -35,11 +45,17 @@ router.get('/latest', async (req, res) => {
 
         const latestPriceDate = latestScore.date;
 
+        // Fetch all stocks to get their indexCategory
+        const Stock = require('../models/Stock');
+        const stocks = await Stock.find({ symbol: { $in: Array.from(uniqueScoresMap.keys()) } }).select('symbol indexCategory').lean();
+        const stockMap = new Map(stocks.map(s => [s.symbol, s.indexCategory || 'UNKNOWN']));
+
         // Enrich with current price data + all Technical Scoring fields
         const enriched = await Promise.all(scores.map(async (score) => {
             const price = await DailyPrice.findOne({ symbol: score.symbol, date: latestPriceDate }).lean();
             return {
                 symbol: score.symbol,
+                indexCategory: stockMap.get(score.symbol),
                 currentPrice: price ? price.close : 0,
 
                 // Scores
@@ -102,10 +118,20 @@ router.get('/all', async (req, res) => {
             .sort({ finalScore: -1, compositeScore: -1 })
             .lean();
 
+        const compositeScoreMap = new Map();
+        for (const s of rawScores) {
+            if (s.setupType === 'CLASSIC_INSTITUTIONAL' && s.compositeScore) {
+                compositeScoreMap.set(s.symbol, s.compositeScore);
+            }
+        }
+
         // Deduplicate by symbol
         const uniqueScoresMap = new Map();
         for (const score of rawScores) {
             if (!uniqueScoresMap.has(score.symbol)) {
+                if (compositeScoreMap.has(score.symbol)) {
+                    score.compositeScore = compositeScoreMap.get(score.symbol);
+                }
                 uniqueScoresMap.set(score.symbol, score);
             }
         }
@@ -113,11 +139,17 @@ router.get('/all', async (req, res) => {
 
         const latestPriceDate = latestScore.date;
 
+        // Fetch all stocks to get their indexCategory
+        const Stock = require('../models/Stock');
+        const stocks = await Stock.find({ symbol: { $in: Array.from(uniqueScoresMap.keys()) } }).select('symbol indexCategory').lean();
+        const stockMap = new Map(stocks.map(s => [s.symbol, s.indexCategory || 'UNKNOWN']));
+
         // Enrich with current price data + all Technical Scoring fields
         const enriched = await Promise.all(scores.map(async (score) => {
             const price = await DailyPrice.findOne({ symbol: score.symbol, date: latestPriceDate }).lean();
             return {
                 symbol: score.symbol,
+                indexCategory: stockMap.get(score.symbol),
                 currentPrice: price ? price.close : 0,
 
                 // Scores

@@ -57,11 +57,28 @@ const STRATEGIES = [
 ];
 
 export default function StrategyVault() {
-  const [activeTab, setActiveTab] = useState(STRATEGIES[0].id)
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined') return sessionStorage.getItem('vaultTab') || STRATEGIES[0].id;
+    return STRATEGIES[0].id;
+  })
   const [results, setResults] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [infoModalOpen, setInfoModalOpen] = useState<string | null>(null)
-  const [momentumTab, setMomentumTab] = useState<'SCAN' | 'HISTORY'>('SCAN')
+  const [momentumTab, setMomentumTab] = useState<'SCAN' | 'HISTORY'>(() => {
+    if (typeof window !== 'undefined') return (sessionStorage.getItem('vaultMomentumTab') as 'SCAN' | 'HISTORY') || 'SCAN';
+    return 'SCAN';
+  })
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 12
+
+  useEffect(() => {
+    sessionStorage.setItem('vaultTab', activeTab);
+    setCurrentPage(1); // Reset page on tab change
+  }, [activeTab]);
+
+  useEffect(() => {
+    sessionStorage.setItem('vaultMomentumTab', momentumTab);
+  }, [momentumTab]);
 
   // Dynamic Momentum Filters
   const [filters, setFilters] = useState<Record<string, boolean | number>>({
@@ -122,6 +139,11 @@ export default function StrategyVault() {
   useEffect(() => {
     fetchData()
   }, [fetchData])
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
 
   const glass = {
     background: "rgba(255,255,255,0.02)",
@@ -280,8 +302,9 @@ export default function StrategyVault() {
                 <p className="text-slate-500 font-bold text-xs tracking-widest uppercase">Running Analysis...</p>
               </div>
             ) : results.length > 0 ? (
+              <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 border-t border-white/5">
-                {results.map((stock, idx) => (
+                {results.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE).map((stock, idx) => (
                   <div 
                     key={stock.symbol}
                     className="p-8 border-r border-b border-white/5 hover:bg-white/[0.02] transition-colors cursor-pointer group"
@@ -371,6 +394,34 @@ export default function StrategyVault() {
                   </div>
                 ))}
               </div>
+              {Math.ceil(results.length / ITEMS_PER_PAGE) > 1 && (
+                <div className="flex items-center justify-between p-6 border-t border-white/5 bg-white/[0.01]">
+                  <button 
+                    disabled={currentPage === 1}
+                    onClick={() => {
+                      setCurrentPage(p => Math.max(1, p - 1));
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="px-5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm font-bold disabled:opacity-30 hover:bg-white/10 transition-colors"
+                  >
+                    ← Previous
+                  </button>
+                  <div className="text-sm font-bold text-slate-400 tracking-widest uppercase">
+                    Page {currentPage} of {Math.ceil(results.length / ITEMS_PER_PAGE)}
+                  </div>
+                  <button 
+                    disabled={currentPage === Math.ceil(results.length / ITEMS_PER_PAGE)}
+                    onClick={() => {
+                      setCurrentPage(p => Math.min(Math.ceil(results.length / ITEMS_PER_PAGE), p + 1));
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="px-5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm font-bold disabled:opacity-30 hover:bg-white/10 transition-colors"
+                  >
+                    Next →
+                  </button>
+                </div>
+              )}
+              </>
             ) : (
               <div className="py-32 flex flex-col items-center text-center px-6">
                 <div className="w-16 h-16 bg-white/5 rounded-3xl flex items-center justify-center mb-6">

@@ -8,7 +8,7 @@ class AiAgentService {
         }
     }
 
-    async prompt(systemPrompt, userPrompt, modelName = "gemini-1.5-flash") {
+    async prompt(systemPrompt, userPrompt, modelName = "gemini-2.5-flash") {
         if (!this.genAI) {
             console.warn('[AiAgentService] No GEMINI_API_KEY found. Returning mock response.');
             return this._getMockResponse(systemPrompt);

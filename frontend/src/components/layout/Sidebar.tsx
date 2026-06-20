@@ -158,13 +158,26 @@ export function Sidebar() {
                     from { transform: rotate(0deg); }
                     to { transform: rotate(360deg); }
                 }
+                .sidebar-nav::-webkit-scrollbar {
+                    width: 4px;
+                }
+                .sidebar-nav::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                .sidebar-nav::-webkit-scrollbar-thumb {
+                    background: rgba(255,255,255,0.1);
+                    border-radius: 4px;
+                }
+                .sidebar-nav::-webkit-scrollbar-thumb:hover {
+                    background: rgba(255,255,255,0.2);
+                }
             `}</style>
 
             {/* Divider */}
             <div style={{ margin: "0 20px 12px", height: 1, background: "rgba(255,255,255,0.05)" }} />
 
             {/* Nav */}
-            <nav style={{ flex: 1, padding: "0 12px", display: "flex", flexDirection: "column", gap: 4 }}>
+            <nav className="sidebar-nav" style={{ flex: 1, padding: "0 12px", display: "flex", flexDirection: "column", gap: 4, overflowY: "auto", overflowX: "hidden" }}>
                 {sidebarItems.map((item) => {
                     const active = pathname === item.href
                     const Icon = item.icon

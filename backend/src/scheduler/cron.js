@@ -51,18 +51,17 @@ const scheduleDailyPipeline = () => {
     }, { timezone: 'UTC' });
 
     // 3. Paper Trading Price Ticker (Every minute 9:15 AM - 3:30 PM IST)
-    // IST 9:15-15:30 -> UTC 03:45-10:00
-    cron.schedule('*/1 3-10 * * 1-5', async () => {
-        const now = new Date();
-        const hour = now.getUTCHours();
-        const min = now.getUTCMinutes();
-        
-        // Final gate for 9:15 IST (3:45 UTC) and 3:30 IST (10:00 UTC)
-        if (hour === 3 && min < 45) return;
-        if (hour === 10 && min > 0) return;
-
-        await PaperPriceUpdater.tick();
-    }, { timezone: 'UTC' });
+    // DISABLED: User requested to stop live fetching since this is an EOD system.
+    // cron.schedule('*/1 3-10 * * 1-5', async () => {
+    //     const now = new Date();
+    //     const hour = now.getUTCHours();
+    //     const min = now.getUTCMinutes();
+    //     
+    //     if (hour === 3 && min < 45) return;
+    //     if (hour === 10 && min > 0) return;
+    //
+    //     await PaperPriceUpdater.tick();
+    // }, { timezone: 'UTC' });
 
     // 4. Paper Trading Intraday Mandatory Exit (3:15 PM IST / 9:45 AM UTC)
     cron.schedule('45 9 * * 1-5', async () => {

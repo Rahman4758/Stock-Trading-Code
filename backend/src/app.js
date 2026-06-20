@@ -25,6 +25,7 @@ const paperRouter = require('./routes/paper');
 const vaultRouter = require('./routes/vault');
 const watchlistRouter = require('./routes/watchlist');
 const swingScanRouter = require('./routes/swingScan');
+const aiRouter = require('./routes/ai');
 
 const app = express();
 
@@ -54,6 +55,7 @@ app.use('/api/v1/paper', paperRouter);
 app.use('/api/v1/vault', vaultRouter);
 app.use('/api/v1/watchlist', watchlistRouter);
 app.use('/api/v1/swing-scan', swingScanRouter);
+app.use('/api/v1/ai', aiRouter);
 app.use('/api', moneyFlowRouter);
 
 // ── Error Handler ─────────────────────────────────────────────────────────────

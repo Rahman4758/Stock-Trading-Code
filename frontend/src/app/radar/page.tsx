@@ -221,7 +221,7 @@ export default function RadarPage() {
                             <p style={{ fontSize: 12, color: "#94a3b8", margin: 0, fontWeight: 500 }}>Review past setups to audit algorithm exits</p>
                         </div>
                         <div style={{ overflowX: "auto" }}>
-                            <table style={{ w: "100%", textAlign: "left", borderCollapse: "collapse", minWidth: 800, width: "100%" }}>
+                            <table style={{ width: "100%", textAlign: "left", borderCollapse: "collapse", minWidth: 800 }}>
                                 <thead>
                                     <tr>
                                         {["Symbol", "Lifecycle Duration", "Entry → Exit Price", "Peak Inst. Score", "Exit Reason"].map(h => (

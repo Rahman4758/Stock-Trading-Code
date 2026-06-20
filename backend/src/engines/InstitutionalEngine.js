@@ -60,7 +60,7 @@ class InstitutionalEngine extends BaseEngine {
             technicalScore: techResult.technicalScore,
             finalScore,
             grade,
-            components: instResult.scores,
+            scores: instResult.scores,
             subScores: techResult.subScores,
             preTradeChecklist: techResult.checklist,
             checklistScore: techResult.checklistScore,

@@ -8,6 +8,7 @@ import Link from "next/link"
 import { ComposedChart, Line, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Area } from "recharts"
 import { motion } from "framer-motion"
 import { InfoTooltip } from "@/components/ui/InfoTooltip"
+import AIAgentChat from "@/components/ui/AIAgentChat"
 
 const RANGE_PRESETS = [
     { label: "1M",  days: 30  },
@@ -93,7 +94,7 @@ export default function FootprintPage() {
 
     const handleTrack = async () => {
         try {
-            await trackPortfolio(symbol, chartData?.chartData[chartData.chartData.length - 1]?.close || 0, 100)
+            await trackPortfolio(symbol, chartData?.chartData?.[chartData.chartData.length - 1]?.close || 0, 100)
             alert("Added to portfolio tracker")
         } catch (e: any) {
             const errorMsg = e.response?.data?.detail || e.response?.data?.error || e.message;
@@ -228,9 +229,9 @@ export default function FootprintPage() {
 
                 {/* ── Header ──────────────────────────────────────────────────── */}
                 <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 16 }}>
-                    <Link href={`/stocks/${symbol}`} style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8", textDecoration: "none", flexShrink: 0 }}>
+                    <button onClick={() => router.back()} style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8", cursor: "pointer", flexShrink: 0 }}>
                         <ArrowLeft size={16} />
-                    </Link>
+                    </button>
 
                     <div style={{ flex: 1 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
@@ -855,9 +856,9 @@ export default function FootprintPage() {
                             <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "#818cf8" }}>High-Conviction Block Trades</div>
                         </div>
                         <div style={{ height: 250, padding: "12px 0 8px" }}>
-                            {chartData?.chartData.some(d => d.bulkBuys || d.bulkSells) ? (
+                            {chartData?.chartData?.some(d => d.bulkBuys || d.bulkSells) ? (
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <ComposedChart data={chartData.chartData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                                    <ComposedChart data={chartData.chartData || []} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.04)" />
                                         <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: "#64748b" }} minTickGap={30} />
                                         <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: "#64748b" }} width={40} tickFormatter={(v) => (v / 1000).toFixed(0) + 'k'} />
@@ -879,6 +880,10 @@ export default function FootprintPage() {
                     </div>
                 </div>
 
+                {/* ── AI Analysis Agent Row ──────────────────────────────────────── */}
+                <div style={{ marginTop: 20 }}>
+                    <AIAgentChat symbol={stock.symbol} contextData={{ stock, analysis, chartData: chartData?.chartData }} />
+                </div>
             </div>
 
             <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>

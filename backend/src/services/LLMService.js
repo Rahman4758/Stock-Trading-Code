@@ -208,7 +208,7 @@ Return ONLY a valid JSON object with NO markdown, NO explanation outside JSON:
         while (retries > 0) {
             try {
                 if (!this.genAIFlash) throw new Error('API Key for Gemini not configured');
-                const jsonModel = this.genAIFlash.getGenerativeModel({ model: 'gemini-1.5-flash' });
+                const jsonModel = this.genAIFlash.getGenerativeModel({ model: 'gemini-2.5-flash' });
                 const result = await jsonModel.generateContent(prompt);
                 const raw = result.response.text().trim();
                 const clean = raw.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();

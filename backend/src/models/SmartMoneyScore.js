@@ -7,11 +7,11 @@ const SmartMoneyScoreSchema = new mongoose.Schema(
 
         // Existing Institutional Component Scores (0-100 each)
         scores: {
-            institutionalFlow: { type: Number, default: 50 }, // FII/DII net bias
-            bulkDeal: { type: Number, default: 50 }, // Smart bulk buys vs sells
-            oiSignal: { type: Number, default: 50 }, // OI long/short buildup
-            delivery: { type: Number, default: 50 }, // Delivery % quality
-            hiddenAccumulation: { type: Number, default: 50 }, // Volume up, price flat
+            institutionalFlow: { type: Number },
+            bulkDeal: { type: Number },
+            oiSignal: { type: Number },
+            delivery: { type: Number },
+            hiddenAccumulation: { type: Number },
         },
 
         // Old 'compositeScore' gets aliased/renamed conceptually, but backward compat

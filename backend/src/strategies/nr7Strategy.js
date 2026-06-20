@@ -132,7 +132,6 @@ class NR7Strategy {
             currentPrice,
             setupType: this.name,
             
-            institutionalScore: 50, // NR7 overrides logic completely
             technicalScore: score,
             finalScore: score, 
             
@@ -160,8 +159,7 @@ class NR7Strategy {
                 target1: target1,
                 target2: target2,
                 rrRatio: 2.0
-            },
-            components: { institutionalFlow: 50, bulkDeal: 50, oiSignal: 50, delivery: 50, hiddenAccumulation: 50 }
+            }
         };
     }
 }

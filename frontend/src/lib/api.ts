@@ -21,6 +21,7 @@ export interface Stock {
     industry?: string;
     marketCap?: number;
     isFno?: boolean;
+    indexCategory?: string;
     isActive: boolean;
 }
 
@@ -93,6 +94,9 @@ export interface ScanResult {
     // Streak tracking
     streakDays?: number;
     streakGrade?: string;
+    
+    // Index mapping
+    indexCategory?: string;
 }
 
 export interface DivergenceAlert {
@@ -212,7 +216,7 @@ export const getAllScannedStocks = async () => {
 };
 
 export const getAllStocks = async (): Promise<Stock[]> => {
-    const response = await api.get<Stock[]>('/stocks?limit=100');
+    const response = await api.get<Stock[]>('/stocks?limit=500');
     return response.data;
 };
 
@@ -297,6 +301,12 @@ export const getJournal = async () => {
 export const runSync = async () => {
     // 10 minute timeout for long-running scraper
     const response = await api.post<{ message: string }>('/sync/run', {}, { timeout: 600000 });
+    return response.data;
+};
+
+// AI Chat API
+export const chatWithAI = async (symbol: string, contextData: any, message: string, history?: any[]) => {
+    const response = await api.post<{ reply: string }>('/ai/chat', { symbol, contextData, message, history });
     return response.data;
 };
 

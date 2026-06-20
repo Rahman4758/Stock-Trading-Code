@@ -147,8 +147,7 @@ class CompressionReleaseStrategy {
                 target1,
                 target2,
                 rrRatio: ((target1 - entry) / (entry - stopLoss)).toFixed(2)
-            },
-            components: { institutionalFlow: 70, bulkDeal: 70, oiSignal: 70, delivery: 70, hiddenAccumulation: 70 }
+            }
         };
     }
 }

@@ -58,31 +58,49 @@ class ConvictionService {
         const endDate   = anchor ? new Date(anchor.date) : queryDate;
         const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
 
-        // ── Compute all 5 sub-scores in parallel ─────────────────────────────
-        const [fiiScore, bulkScore, oiScore, deliveryScore, hiddenScore] = await Promise.all([
-            this._scoreFiiFlow(symbol, startDate, endDate),
-            this._scoreBulkDeals(symbol, startDate, endDate),
-            this._scoreOiSignal(symbol, startDate, endDate),
-            this._scoreDelivery(symbol, startDate, endDate, prefetchedPrices),
-            this._scoreHiddenAccumulation(symbol, startDate, endDate, prefetchedPrices),
+        // ── Compute components in parallel ─────────────────────────────
+        const [fiiFlowVal, bulkDealBonus, oiScore, deliveryScore, hiddenScore] = await Promise.all([
+            this._scoreFiiFlow(symbol, startDate, endDate), // Returns Market flow multiplier logic or null
+            this._scoreBulkDeals(symbol, startDate, endDate), // Returns additive bonus points (-20 to +20)
+            this._scoreOiSignal(symbol, startDate, endDate),  // Returns 0-100 or null if not F&O
+            this._scoreDelivery(symbol, startDate, endDate, prefetchedPrices), // Returns 0-100
+            this._scoreHiddenAccumulation(symbol, startDate, endDate, prefetchedPrices), // Returns 0-100
         ]);
 
-        // ── Weighted composite ────────────────────────────────────────────────
-        const compositeScore = parseFloat((
-            fiiScore    * 0.30 +
-            bulkScore   * 0.25 +
-            oiScore     * 0.20 +
-            deliveryScore * 0.15 +
-            hiddenScore * 0.10
-        ).toFixed(2));
+        let coreScore = 0;
+        let isFnO = oiScore !== null;
+
+        if (isFnO) {
+            coreScore = (deliveryScore * 0.50) + (oiScore * 0.30) + (hiddenScore * 0.20);
+        } else {
+            coreScore = (deliveryScore * 0.70) + (hiddenScore * 0.30);
+        }
+
+        let finalComposite = coreScore;
+
+        // Apply Additive Bonus (Bulk Deals)
+        if (bulkDealBonus !== 0) {
+            finalComposite += bulkDealBonus;
+        }
+
+        // Apply Market Sentiment Multiplier (FII/DII)
+        if (fiiFlowVal !== 1.0) {
+            finalComposite = finalComposite * fiiFlowVal;
+        }
+
+        // Cap at 100 and floor at 0
+        if (finalComposite > 100) finalComposite = 100;
+        if (finalComposite < 0) finalComposite = 0;
+
+        const compositeScore = parseFloat(finalComposite.toFixed(2));
 
         const result = {
             symbol,
             compositeScore,
             scores: {
-                institutionalFlow:   parseFloat(fiiScore.toFixed(2)),
-                bulkDeal:            parseFloat(bulkScore.toFixed(2)),
-                oiSignal:            parseFloat(oiScore.toFixed(2)),
+                institutionalFlow:   parseFloat(fiiFlowVal.toFixed(2)),
+                bulkDeal:            parseFloat(bulkDealBonus.toFixed(2)),
+                oiSignal:            isFnO ? parseFloat(oiScore.toFixed(2)) : 50,
                 delivery:            parseFloat(deliveryScore.toFixed(2)),
                 hiddenAccumulation:  parseFloat(hiddenScore.toFixed(2)),
             },
@@ -128,16 +146,19 @@ class ConvictionService {
     async _scoreFiiFlow(symbol, startDate, endDate) {
         // FiiRepository.getDailyFlow already handles duplicate-safe aggregation
         const days = await fiiRepo.getDailyFlow(symbol, startDate, endDate);
-        if (!days.length) return 50.0; // No data → neutral
+        if (!days.length) return 1.0; // No data -> neutral multiplier
 
         const netFlow = days.reduce((sum, d) => sum + d.fiiNet, 0);
 
         // Threshold: 50 Cr (stored as rupees: 1Cr = 10^7)
         const threshold = 500000000; // 50 Cr
 
-        if (netFlow > threshold)  return 100.0;
-        if (netFlow < -threshold) return 0.0;
-        return 50.0 + (netFlow / threshold) * 50.0;
+        if (netFlow > threshold)  return 1.10; // +10% boost
+        if (netFlow > 0)          return 1.05; // +5% boost
+        if (netFlow < -threshold) return 0.90; // -10% drag
+        if (netFlow < 0)          return 0.95; // -5% drag
+        
+        return 1.0;
     }
 
     async _scoreBulkDeals(symbol, startDate, endDate) {
@@ -146,7 +167,7 @@ class ConvictionService {
             snapshotRepo.getBulkDeals(symbol, startDate, endDate),
         ]);
 
-        if (!deals.length) return 50.0;
+        if (!deals.length) return 0.0; // Additive bonus is 0
 
         const smartIds = new Set(smartInstitutions.map(i => i._id.toString()));
         let buyVal = 0, sellVal = 0;
@@ -157,13 +178,20 @@ class ConvictionService {
             if (deal.dealType === 'SELL') sellVal += (deal.dealValue || 0) * multiplier;
         });
 
+        const net = buyVal - sellVal;
         const total = buyVal + sellVal;
-        return total === 0 ? 50.0 : (buyVal / total) * 100.0;
+        
+        if (total === 0) return 0.0;
+
+        // Ratio from -1 to +1
+        const ratio = net / total;
+        // Map ratio to -20 to +20 points bonus
+        return ratio * 20.0;
     }
 
     async _scoreOiSignal(symbol, startDate, endDate) {
         const docs = await snapshotRepo.getOiRange(symbol, startDate, endDate);
-        if (!docs.length) return 50.0;
+        if (!docs.length) return null; // Important: Return null if no data so we know it's not F&O
 
         // Weight recent days more (most recent gets highest weight)
         let weightedScore = 0, totalWeight = 0, weight = 1;
@@ -194,10 +222,19 @@ class ConvictionService {
         const validDocs = docs.filter(d => (d.deliveryPct || 0) > 0);
         if (!validDocs.length) return 50.0;
 
-        const avg = validDocs.reduce((sum, d) => sum + d.deliveryPct, 0) / validDocs.length;
+        // Weight recent days heavier
+        let totalWeight = 0, weightedSum = 0, weight = 1;
+        [...validDocs].sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(d => {
+            weightedSum += d.deliveryPct * weight;
+            totalWeight += weight;
+            weight += 0.5; // recent days get progressively more weight
+        });
+        const avg = weightedSum / totalWeight;
 
-        if (avg > 60) return 90.0;
-        if (avg > 50) return 70.0;
+        if (avg > 60) return 100.0;
+        if (avg > 55) return 90.0;
+        if (avg > 50) return 80.0;
+        if (avg > 45) return 60.0;
         if (avg > 40) return 50.0;
         if (avg > 30) return 30.0;
         return 10.0;
@@ -215,24 +252,38 @@ class ConvictionService {
 
         if (docs.length < 5) return 50.0;
 
-        const first = docs[0];
-        const last  = docs[docs.length - 1];
-        if (!first.close || !last.close || !first.volume || !last.volume) return 50.0;
+        // Compare last 3 days against prior days to catch sudden explosions
+        const recentDocs = docs.slice(-3);
+        const priorDocs = docs.slice(0, -3);
+        
+        if (priorDocs.length === 0 || recentDocs.length === 0) return 50.0;
 
-        const priceChange   = (last.close - first.close) / first.close;
-        const half          = Math.floor(docs.length / 2);
-        const avgVolFirst   = docs.slice(0, half).reduce((s, d) => s + (d.volume || 0), 0) / half;
-        const avgVolSecond  = docs.slice(half).reduce((s, d) => s + (d.volume || 0), 0) / (docs.length - half);
+        const recentAvgVol = recentDocs.reduce((s,d) => s+(d.volume||0), 0) / recentDocs.length;
+        const priorAvgVol = priorDocs.reduce((s,d) => s+(d.volume||0), 0) / priorDocs.length;
+        
+        const volChange = priorAvgVol === 0 ? 0 : (recentAvgVol - priorAvgVol) / priorAvgVol;
+        
+        const recentStartPrice = priorDocs[priorDocs.length-1].close;
+        const recentEndPrice = recentDocs[recentDocs.length-1].close;
+        const recentPriceChange = (recentEndPrice - recentStartPrice) / recentStartPrice;
 
-        if (avgVolFirst === 0) return 50.0;
-        const volChange = (avgVolSecond - avgVolFirst) / avgVolFirst;
+        // Explosive Breakout: Volume more than doubled + Price up > 5%
+        if (volChange > 1.0 && recentPriceChange >= 0.05) return 100.0;
+        
+        // Strong Momentum: Volume up 50% + Price up > 3%
+        if (volChange > 0.5 && recentPriceChange >= 0.03) return 90.0;
+        
+        // Stealth Accumulation: Volume up 20% + Price flat
+        if (volChange > 0.2 && recentPriceChange > -0.02 && recentPriceChange < 0.03) return 80.0;
+        
+        // Buying into Weakness: Volume up 50% + Price down sharply
+        if (volChange > 0.5 && recentPriceChange <= -0.04) return 70.0;
+        
+        // Weak rally (distribution): Price up > 5% but volume dropped by 20%
+        if (volChange < -0.2 && recentPriceChange > 0.05) return 30.0;
 
-        // Volume rising + price flat = stealth accumulation
-        if (volChange > 0.2 && priceChange < 0.02 && priceChange > -0.05) return 90.0;
-        // Volume rising + price falling = buying into weakness
-        if (volChange > 0.3 && priceChange < -0.05)                        return 80.0;
-        // Price up + volume falling = weak rally
-        if (volChange < -0.2 && priceChange > 0.05)                        return 20.0;
+        // Selloff: Volume up + Price down
+        if (volChange > 0.5 && recentPriceChange < -0.05) return 10.0;
 
         return 50.0;
     }

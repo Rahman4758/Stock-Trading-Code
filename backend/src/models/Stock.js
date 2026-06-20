@@ -10,6 +10,7 @@ const StockSchema = new mongoose.Schema(
         marketCap: { type: Number },       // in rupees
         lotSize: { type: Number },         // F&O lot size
         sectorIndex: { type: String, index: true }, // e.g. 'NIFTY_BANK', 'NIFTY_IT'
+        indexCategory: { type: String, default: 'UNKNOWN' }, // 'FNO', 'NIFTY_NEXT_50', 'NIFTY_MIDCAP_150'
         isFno: { type: Boolean, default: false },
         isActive: { type: Boolean, default: true, index: true },
     },

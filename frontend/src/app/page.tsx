@@ -318,7 +318,7 @@ export default function MarketOverview() {
                                   </span>
                                 ))}
                                 
-                                {flags.length > 0 && flags.map(f => (
+                                {flags.length > 0 && flags.map((f: string) => (
                                   <span key={f} style={{ ...chip, background: "rgba(248,113,113,0.1)", color: "#f87171", border: "1px solid rgba(248,113,113,0.2)", fontSize: 9, padding: "1px 4px" }}>
                                     {f}
                                   </span>

@@ -84,10 +84,24 @@ class StockSelector {
         // 4. Deduplicate and Sort
         // If a stock triggers multiple engines, keep the highest scoring signal 
         // and aggregate the setup names.
+        // First pass: extract the true institutional flow (compositeScore) from InstitutionalEngine
+        const trueCompositeScores = new Map();
+        for (const r of finalResults) {
+            if (r.setupType === 'CLASSIC_INSTITUTIONAL' && r.compositeScore) {
+                trueCompositeScores.set(r.symbol, r.compositeScore);
+            }
+        }
+
         const dedupedMap = new Map();
         for (const r of finalResults) {
             if (r.grade === 'SKIP') continue;
             
+            // Ensure the true Institutional Flow is preserved regardless of winning strategy
+            if (trueCompositeScores.has(r.symbol)) {
+                r.compositeScore = trueCompositeScores.get(r.symbol);
+            }
+            if (!r.compositeScore) r.compositeScore = 0; // fallback
+
             const existing = dedupedMap.get(r.symbol);
             if (!existing || r.finalScore > existing.finalScore) {
                 // If this is the new highest, carry over any previously seen setups

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getAllScannedStocks, ScanResult } from "@/lib/api"
+import { getAllScannedStocks, getAllStocks, ScanResult } from "@/lib/api"
 import { Search, ArrowLeft, ArrowUpRight, Filter, Target } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
@@ -14,8 +14,30 @@ export default function MarketScreenerPage() {
     useEffect(() => {
         const fetchStocks = async () => {
             try {
-                const data = await getAllScannedStocks()
-                setStocks(data)
+                const [scannedData, allStocks] = await Promise.all([
+                    getAllScannedStocks(),
+                    getAllStocks()
+                ])
+                
+                const scannedMap = new Map(scannedData.map(s => [s.symbol, s]));
+                const merged = allStocks.map(stock => {
+                    if (scannedMap.has(stock.symbol)) return scannedMap.get(stock.symbol)!;
+                    return {
+                        symbol: stock.symbol,
+                        grade: "UNRATED",
+                        finalScore: 0,
+                        compositeScore: 0,
+                        technicalScore: 0,
+                        setupType: "NOT SCANNED",
+                        action: "NONE",
+                        scores: { institutionalFlow: 0, bulkDeal: 0, oiSignal: 0, delivery: 0, hiddenAccumulation: 0 },
+                        flags: [],
+                        indexCategory: stock.indexCategory || "UNKNOWN"
+                    } as ScanResult;
+                });
+                
+                merged.sort((a, b) => (b.finalScore || 0) - (a.finalScore || 0));
+                setStocks(merged);
             } catch (err) {
                 console.error("Failed to load screener data", err)
             } finally {
@@ -25,9 +47,11 @@ export default function MarketScreenerPage() {
         fetchStocks()
     }, [])
 
+    const searchLower = searchQuery.toLowerCase();
     const filteredStocks = stocks.filter(stock => 
-        stock.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (stock.setupType && stock.setupType.toLowerCase().includes(searchQuery.toLowerCase()))
+        (stock.symbol && stock.symbol.toLowerCase().includes(searchLower)) ||
+        (stock.setupType && stock.setupType.replace(/_/g, ' ').toLowerCase().includes(searchLower)) ||
+        (stock.grade && stock.grade.toLowerCase().includes(searchLower))
     )
 
     const glass: React.CSSProperties = {
@@ -79,7 +103,7 @@ export default function MarketScreenerPage() {
                             <Search size={16} color="#64748b" style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)" }} />
                             <input 
                                 type="text" 
-                                placeholder="Search symbol or setup..." 
+                                placeholder="Search symbol, setup, or grade..." 
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 style={{ width: "100%", padding: "14px 16px 14px 44px", background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, color: "#f1f5f9", fontSize: 14, fontWeight: 500, outline: "none", transition: "border 0.2s" }}
@@ -93,7 +117,7 @@ export default function MarketScreenerPage() {
                     <div style={{ padding: "20px 24px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                             <Target size={16} color="#a78bfa" />
-                            <span style={{ fontSize: 16, fontWeight: 600, color: "#e2e8f0" }}>All Active F&O Stocks</span>
+                            <span style={{ fontSize: 16, fontWeight: 600, color: "#e2e8f0" }}>All Active Stocks</span>
                         </div>
                         <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.1em" }}>
                             {filteredStocks.length} Results
@@ -130,6 +154,19 @@ export default function MarketScreenerPage() {
                                                 <td style={{ padding: "16px 24px" }}>
                                                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                                         <span style={{ fontSize: 15, fontWeight: 800, color: "#f8fafc" }}>{stock.symbol}</span>
+                                                        {stock.indexCategory && stock.indexCategory !== 'UNKNOWN' && (
+                                                            <span style={{ 
+                                                                fontSize: 9, 
+                                                                fontWeight: 800, 
+                                                                padding: "2px 6px", 
+                                                                borderRadius: 4, 
+                                                                background: stock.indexCategory === 'FNO' ? "rgba(167, 139, 250, 0.15)" : "rgba(56, 189, 248, 0.15)", 
+                                                                color: stock.indexCategory === 'FNO' ? "#a78bfa" : "#38bdf8",
+                                                                border: `1px solid ${stock.indexCategory === 'FNO' ? "rgba(167, 139, 250, 0.3)" : "rgba(56, 189, 248, 0.3)"}`
+                                                            }}>
+                                                                {stock.indexCategory.replace('NIFTY_', '')}
+                                                            </span>
+                                                        )}
                                                         {stock.flags && stock.flags.length > 0 && (
                                                             <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#f87171", title: stock.flags.join(', ') }} />
                                                         )}

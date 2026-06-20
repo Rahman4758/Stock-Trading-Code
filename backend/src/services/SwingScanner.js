@@ -27,8 +27,8 @@ class SwingScanner {
     async layer1Filter() {
         console.log('[SwingScanner] Layer 1: Running fast DB pre-filter...');
 
-        // Get the latest trading date we have data for
-        const latestDoc = await DailyPrice.findOne().sort({ date: -1 }).select('date').lean();
+        // Get the latest trading date we have VALID DELIVERY data for
+        const latestDoc = await DailyPrice.findOne({ deliveryPct: { $gt: 0 } }).sort({ date: -1 }).select('date').lean();
         if (!latestDoc) return [];
         const latestDate = latestDoc.date;
 
@@ -38,6 +38,8 @@ class SwingScanner {
             close:       { $gte: 50 },             // Min price ₹50
             deliveryPct: { $gte: 38 },              // Min delivery
         }).select('symbol close sma50 sma200 rsi14 deliveryPct rsVsNifty high52w volume').lean();
+        
+        console.log(`[SwingScanner] Layer 1: found latestDate = ${latestDate}. Candidates fetched = ${candidates.length}`);
 
         // Also match OI signal — exclude bearish OI
         const symbols = candidates.map(c => c.symbol);
@@ -50,16 +52,27 @@ class SwingScanner {
         const oiMap = {};
         latestOi.forEach(o => { if (!oiMap[o.symbol]) oiMap[o.symbol] = o; });
 
-        const passed = candidates.filter(c => oiOkSymbols.has(c.symbol));
-        console.log(`[SwingScanner] Layer 1: ${candidates.length} candidates → ${passed.length} passed`);
-        return { passed, oiMap, latestDate };
+        // Fetch stock info to determine F&O status
+        const stocks = await require('../models/Stock').find({ symbol: { $in: symbols } }).select('symbol isFno').lean();
+        const stockMap = {};
+        stocks.forEach(s => stockMap[s.symbol] = s);
+
+        const passed = candidates.filter(c => {
+            const isFno = stockMap[c.symbol]?.isFno;
+            // If it's a non-F&O stock, bypass OI filter
+            if (!isFno) return true;
+            // If it is F&O, it must have a valid OI signal
+            return oiOkSymbols.has(c.symbol);
+        });
+        console.log(`[SwingScanner] Layer 1: ${candidates.length} candidates → ${passed.length} passed (OI ok or non-F&O)`);
+        return { passed, oiMap, latestDate, stockMap };
     }
 
     // ─────────────────────────────────────────────
     // LAYER 2 — DEEP ALGORITHMIC SCAN
     // ─────────────────────────────────────────────
     async layer2AlgoScan(layer1Result) {
-        const { passed, oiMap, latestDate } = layer1Result;
+        const { passed, oiMap, latestDate, stockMap } = layer1Result;
         console.log(`[SwingScanner] Layer 2: Running algo scan on ${passed.length} stocks...`);
 
         const qualifiedStocks = [];
@@ -183,8 +196,16 @@ class SwingScanner {
                 if (del10Rising)                   algoScore += 6;
                 if (volContracting)                algoScore += 8;
                 if (distDays === 0)                algoScore += 5;
-                if (pcr >= 1.0)                    algoScore += 8;
-                if (pcrTrend === 'IMPROVING')       algoScore += 5;
+                
+                // OI rules only apply if it's F&O, otherwise give neutral boost
+                const isFno = stockMap && stockMap[sym]?.isFno;
+                if (isFno) {
+                    if (pcr >= 1.0)                    algoScore += 8;
+                    if (pcrTrend === 'IMPROVING')       algoScore += 5;
+                } else {
+                    algoScore += 10; // Neutral baseline for non-F&O
+                }
+
                 if ((latest.rsVsNifty || 0) >= 0)  algoScore += 5;
                 if (convictionScore >= 70)          algoScore += 10;
                 if (inBase)                         algoScore += 5;
